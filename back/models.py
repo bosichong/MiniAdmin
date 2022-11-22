@@ -2,7 +2,7 @@
 Author: J.sky bosichong@qq.com
 Date: 2022-11-21 14:41:49
 LastEditors: J.sky bosichong@qq.com
-LastEditTime: 2022-11-22 16:03:35
+LastEditTime: 2022-11-22 22:38:57
 FilePath: /MiniAdmin/back/models.py
 python交流学习群号:217840699
 model,sub, obj, act 表示经典三元组: 访问实体 (Subject)，访问资源 (Object) 和访问方法 (Action)。
@@ -56,7 +56,6 @@ class CasbinObject(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True, comment='ID')
-    type = Column(String(128), nullable=False, comment='资源类型')
     name = Column(String(128), nullable=False, unique=True, comment='资源名称')
     object_key = Column(String(128), nullable=False, unique=True, comment='资源标识')
     description = Column(String(128), nullable=True, comment='资源描述')
@@ -65,7 +64,7 @@ class CasbinObject(Base):
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False, comment='创建者')
     user = relationship('User', back_populates='cos')
 
-    casbin_category_id = Column(Integer, ForeignKey('casbincategory.id'),nullable=False, comment='所属分类')
+    casbin_category_id = Column(Integer, ForeignKey('casbin_category.id'),nullable=False, comment='所属分类')
     cc = relationship('CasbinCategory', back_populates='cos')
 
 class CasbinAction(Base):
@@ -73,7 +72,6 @@ class CasbinAction(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True, comment='ID')
-    type = Column(String(128),nullable=False, comment='动作类型')
     name = Column(String(128), nullable=False, unique=True, comment='动作名称')
     action_key = Column(String(128), nullable=False,unique=True, comment='动作标识')
     description = Column(String(128), nullable=True, comment='动作描述')
@@ -85,7 +83,7 @@ class CasbinAction(Base):
 
 
 class CasbinCategory(Base):
-    __tablename__ = 'casbincategory'
+    __tablename__ = 'casbin_category'
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True, comment='ID')
