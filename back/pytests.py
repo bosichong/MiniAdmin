@@ -3,7 +3,7 @@ Author: J.sky bosichong@qq.com
 Date: 2022-11-21 10:55:30
 
 LastEditors: J.sky bosichong@qq.com
-LastEditTime: 2022-11-22 22:27:15
+LastEditTime: 2022-11-23 19:04:32
 FilePath: /MiniAdmin/tests/test_database.py
 python交流学习群号:217840699
 '''
@@ -15,7 +15,7 @@ from config import BASE_DIR
 from casbin_sqlalchemy_adapter import Adapter
 from database import get_db, Base, engine
 import crud
-from models import User, CasbinAction, CasbinObject, CasbinCategory, Role
+from models import User, CasbinAction, CasbinObject, CasbinCategory, Role, CasbinRule
 from utils import get_password_hash, verify_password
 
 
@@ -34,7 +34,7 @@ class TestDatabase:
     def test_add_user(self):
         hashed_password = get_password_hash('123456')
         # 创建用户
-        user = crud.add_user(self.db, User(username='admin', hashed_password=hashed_password, email='admin@example.com', remark='管理员'))
+        user = crud.add_user(self.db, User(username='miniadmin', hashed_password=hashed_password, email='admin@example.com', remark='管理员'))
         assert user.id > 0
 
     def test_get_users(self):
@@ -78,6 +78,32 @@ class TestDatabase:
             CasbinObject(name='资源分类',object_key='CasbinCategory',description='CasbinCategory表--资源分类相关权限', user=user, cc=user_cc ),
         ]
         crud.add_casbinobjects(self.db,cos)
+
+    def test_create_casbin_rul(self):
+        # 整理资料 创建管理员的policy
+        user = crud.get_user_by_id(self.db , 1)
+        role = crud.get_role(self.db, 1) # 超级管理员
+        cas = crud.get_casbin_actions(self.db) # 动作
+        cos = crud.get_casbin_objects(self.db) # 资源
+        crs =[]
+        for co in cos:
+            for ca in cas:
+                crs.append(CasbinRule(ptype='p',v0=role.role_key,v1=co.object_key,v2=ca.action_key))
+        
+        assert len(crs) > 10
+        k = crud.create_casbin_rule(self.db, crs)
+        assert k == 0
+        assert crud.get_casbin_rule_count(self.db) > 20
+
+        # 设置miniadmin的角色为超级管理员
+        k = crud.create_casbin_rule_g(self.db,CasbinRule(ptype = 'g',v0 = user.username, v1 = role.role_key))
+        assert k == 0
+        crs = crud.get_casbinrule_by_rolekey_users(self.db,role.role_key)
+        assert len(crs) > 0
+
+
+        
+
 
     def teardown_class(self):
         Base.metadata.drop_all(engine)

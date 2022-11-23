@@ -2,7 +2,7 @@
 Author: J.sky bosichong@qq.com
 Date: 2022-11-21 14:41:49
 LastEditors: J.sky bosichong@qq.com
-LastEditTime: 2022-11-22 22:38:57
+LastEditTime: 2022-11-23 15:30:30
 FilePath: /MiniAdmin/back/models.py
 python交流学习群号:217840699
 model,sub, obj, act 表示经典三元组: 访问实体 (Subject)，访问资源 (Object) 和访问方法 (Action)。
@@ -30,6 +30,7 @@ class User(Base):
     remark = Column(String(128), comment='备注')
     create_time = Column(DateTime, nullable=False, default=datetime.now, comment='创建时间')
     update_time = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新时间')
+ 
 
     roles = relationship('Role', uselist=True, back_populates='user')
     cos = relationship('CasbinObject', uselist=True, back_populates='user')
@@ -97,4 +98,29 @@ class CasbinCategory(Base):
 
     cos = relationship('CasbinObject', uselist=True, back_populates='cc')
 
+
+
+
+class CasbinRule(Base):
+    __tablename__ = "casbin_rule"
+
+    id = Column(Integer, primary_key=True)
+    ptype = Column(String(255))
+    v0 = Column(String(255))
+    v1 = Column(String(255))
+    v2 = Column(String(255))
+    v3 = Column(String(255))
+    v4 = Column(String(255))
+    v5 = Column(String(255))
+
+    def __str__(self):
+        arr = [self.ptype]
+        for v in (self.v0, self.v1, self.v2, self.v3, self.v4, self.v5):
+            if v is None:
+                break
+            arr.append(v)
+        return ", ".join(arr)
+
+    def __repr__(self):
+        return '<CasbinRule {}: "{}">'.format(self.id, str(self))
 
