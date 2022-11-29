@@ -9,8 +9,18 @@ python交流学习群号:217840699
 '''
 
 from functools import wraps
+
 from passlib.context import CryptContext
 from pydantic import BaseSettings
+from fastapi import HTTPException, status
+from jose import JWTError, jwt
+
+from schemas import TokenData
+
+
+from fastapi.security import OAuth2PasswordBearer
+# 执行生成token的地址
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/token")
 
 
 class AppTokenConfig(BaseSettings):
@@ -32,18 +42,18 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password, hashed_password):
-    '''
+    """
     description: 校验密码
     return {*} bool
-    '''
+    """
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password):
-    '''
+    """
     description: hash密码
     return {*} hashed_password
-    '''
+    """
     return pwd_context.hash(password)
 
 
@@ -64,6 +74,37 @@ def verify_casbin_decorator(e, sub, obj, act):
                 return fun(*args, **kwargs)
             else:
                 return 433
+
+        return wrapper
+
+    return decorator
+
+
+def verify_token_wrapper():
+    """定义一个token验证的装饰器"""
+
+    def decorator(func):
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="请先登陆后尝试",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:  # 从token中解码出用户名，
+                token = kwargs["token"]
+                payload = jwt.decode(token, APP_TOKEN_CONFIG.SECRET_KEY, algorithms=[APP_TOKEN_CONFIG.ALGORITHM])
+                username: str = payload.get("sub")  # 从 token中获取用户名
+                print(username)
+                if username is None:
+                    return False
+                token_data = TokenData(username=username)
+                if token_data.username:
+                    return func(*args, **kwargs)  # 要执行的函数
+                else:
+                    raise credentials_exception
+            except JWTError:
+                raise credentials_exception
 
         return wrapper
 

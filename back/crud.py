@@ -18,10 +18,20 @@ from models import User, CasbinAction, CasbinObject, CasbinCategory, Role, Casbi
 from utils import verify_password, get_password_hash
 
 
+def create_super_admin(db: Session):
+    # TODO 创建管理员
+    hashed_password = get_password_hash('123456')
+    add_user(db, User(username='miniadmin', hashed_password=hashed_password, email='admin@example.com', remark='管理员'))
+
+
 # User
 
-
 def add_user(db: Session, user: User):
+    """
+    :param db:
+    :param user:
+    :return:
+    """
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -33,7 +43,7 @@ def get_user_by_id(db: Session, id: int):
 
 
 def get_user_by_username(db: Session, username: str):
-    return db.query(User).filter(User.username == username).first()
+    return db.query(User).filter_by(username=username).first()
 
 
 def change_user_password(db: Session, old_password: str, new_password: str, user_id: int):
@@ -64,6 +74,13 @@ def delete_user_by_id(db: Session, user_id):
 
 
 def change_user_role(db: Session, user_id, role_key):
+    """
+    改变用户所属的用户组
+    :param db:
+    :param user_id:
+    :param role_key:
+    :return:
+    """
     user = db.query(User).filter_by(id=user_id).first()
     crs = db.query(CasbinRule).filter_by(ptype='g', v0=user.username).all()
     delete_p_casbin_rules(db, crs)  # 删除所有role
@@ -151,7 +168,7 @@ def change_role_casbinrules(db: Session, role_key: str, crs):
     :return:
     """
     delete_casbin_rules(db, role_key)
-    create_casbin_rules(db,crs)
+    create_casbin_rules(db, crs)
 
 
 def delete_casbin_rules(db, role_key):

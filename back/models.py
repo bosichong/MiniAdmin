@@ -10,7 +10,7 @@ model,sub, obj, act 表示经典三元组: 访问实体 (Subject)，访问资源
 
 from datetime import datetime
 from database import Base
-from sqlalchemy import String, Column, Integer, DateTime, ForeignKey
+from sqlalchemy import String, Column, Integer, DateTime, ForeignKey,Boolean
 from sqlalchemy.orm import relationship
 
 
@@ -25,7 +25,7 @@ class User(Base):
     hashed_password = Column(String(128), nullable=False, comment='用户密码')
     sex = Column(String(1), nullable=False, default='0', comment='用户性别')
     email = Column(String(128), nullable=False, unique=True, comment='用户邮箱')
-    status = Column(Integer, nullable=False, default=0, comment='帐号状态:0正常 1停用')
+    is_active = Column(Boolean, default=True)
     avatar = Column(String(128), comment='用户头像')
     remark = Column(String(128), comment='备注')
     create_time = Column(DateTime, nullable=False, default=datetime.now, comment='创建时间')
@@ -101,6 +101,7 @@ class CasbinCategory(Base):
 
 class CasbinRule(Base):
     __tablename__ = "casbin_rule"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True)
     ptype = Column(String(255))

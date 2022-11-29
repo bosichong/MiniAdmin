@@ -13,18 +13,19 @@ import pytest
 import casbin
 from config import BASE_DIR
 from casbin_sqlalchemy_adapter import Adapter
-from database import get_db, Base, engine
+from database import get_db_to_T_E_S_T, engine_test, Base
 import crud
 from models import User, CasbinAction, CasbinObject, CasbinCategory, Role, CasbinRule
 from utils import get_password_hash, verify_password, verify_casbin_decorator, verify_e
 
 
+
 class TestDatabase:
 
     def setup_class(self):
-        self.adapter = Adapter(engine)
-        Base.metadata.create_all(engine)
-        self.db = next(get_db())
+        self.adapter = Adapter(engine_test)
+        Base.metadata.create_all(engine_test)
+        self.db = next(get_db_to_T_E_S_T())
         self.model_path = os.path.join(BASE_DIR, 'rbac_model.conf')
 
         # 创建用户
@@ -257,7 +258,7 @@ class TestDatabase:
                 crs.append(CasbinRule(ptype='p', v0=role.role_key, v1=co.object_key, v2=ca.action_key))
 
         crud.change_role_casbinrules(self.db,role.role_key,crs) # 为test添加所有权限！
-        self.print_crs()
+        # self.print_crs()
         e = self.get_casbin_e()
 
         @verify_casbin_decorator(e, user.username, 'CasbinCategory', 'delete')
@@ -289,7 +290,7 @@ class TestDatabase:
         assert haha1() == 433  # 权限没有通过
 
     def teardown_class(self):
-        Base.metadata.drop_all(engine)
+        Base.metadata.drop_all(engine_test)
         # pass
 
 

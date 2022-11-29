@@ -7,15 +7,22 @@ FilePath: /MiniAdmin/back/main.py
 MiniAdmin,一个简洁轻快的后台管理框架
 '''
 
+import os
+import sys
+
+# 将当前目录添加到系统变量中
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware  # 解决跨域
 import uvicorn as uvicorn
 
-from v1.main import router
+from database import Base, engine
+from api_v1 import router
 
 __version__ = "0.0.1"
 description = '''MiniAdmin,一个简洁轻快的后台管理框架. 🚀'''
-
 
 app = FastAPI(
     title="MiniAdmin",
@@ -46,12 +53,19 @@ app.add_middleware(
 
 app.include_router(router)
 
+DATABASE_KEY = "miniadmin"
+# 删除表，当更新表的结构时可以使用，但是会删除所有数据。慎用！！！！
+# models.Base.metadata.drop_all(bind=engine)
+# 在数据库中生成表结构
+Base.metadata.create_all(bind=engine)
+
+
+# crud.create_super_admin()
+
 
 @app.get("/")
 def test():
     return 'Hello MiniAdmin'
-
-
 
 
 if __name__ == '__main__':

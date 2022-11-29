@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache
+*.pytest_cache
 
 # Distribution / packaging
 .Python
@@ -10,6 +11,7 @@ env/
 build/
 dist/
 *.log
+*.db
 
 # pyenv
 .python-version
