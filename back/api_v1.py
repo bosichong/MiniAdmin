@@ -1,25 +1,24 @@
-'''
+"""
 Author: J.sky bosichong@qq.com
 Date: 2022-11-21 09:32:46
 LastEditors: J.sky bosichong@qq.com
 LastEditTime: 2022-11-21 11:20:48
 FilePath: /MiniAdmin/back/v1/main.py
 v1
-'''
+"""
 
 from datetime import datetime, timedelta
-from typing import Union, List
+from typing import Union
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
-
-import crud,schemas
+import crud, schemas
 from database import get_db
 from schemas import Token, TokenData
-from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, verify_token_wrapper
+from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, verify_token_wrapper, get_username_by_token
 from config import logger
 
 router = APIRouter(
@@ -27,30 +26,6 @@ router = APIRouter(
     tags=["v1"],
     responses={404: {"description": "Not found"}},  # 请求异常返回数据
 )
-
-
-@router.post("/token", response_model=Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # 获取用户,如果没有或密码错误并提示错误.
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="用户名或密码错误!",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_UNAUTHORIZED,
-            detail="帐号已禁用!",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=APP_TOKEN_CONFIG.ACCESS_TOKEN_EXPIRE_MINUTES)
-    # 生成token
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
 
 
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
@@ -90,16 +65,41 @@ def authenticate_user(db: Session, username: str, password: str, ):
     return user
 
 
-@router.get("/users/me", response_model=schemas.User)
+@router.post("/token", response_model=Token)
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    # 获取用户,如果没有或密码错误并提示错误.
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="用户名或密码错误!",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_UNAUTHORIZED,
+            detail="帐号已禁用!",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=APP_TOKEN_CONFIG.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # 生成token
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/user/me", response_model=schemas.User)
 @verify_token_wrapper()
-def read_users_me(token: str = Depends(oauth2_scheme)):
+def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """
     返回当前用户的资料
     """
-    return "user"
+    username = get_username_by_token(token)
+    user = crud.get_user_by_username(db, username)
+    return user
 
 
 @router.get("")
 def test():
-    logger.debug('Hello MiniAdmin v1')
     return 'Hello MiniAdmin v1'

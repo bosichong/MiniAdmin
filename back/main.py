@@ -18,8 +18,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware  # 解决跨域
 import uvicorn as uvicorn
 
-from database import Base, engine
+from database import Base, engine, get_db
 from api_v1 import router
+import crud
 
 __version__ = "0.0.1"
 description = '''MiniAdmin,一个简洁轻快的后台管理框架. 🚀'''
@@ -59,8 +60,7 @@ DATABASE_KEY = "miniadmin"
 # 在数据库中生成表结构
 Base.metadata.create_all(bind=engine)
 
-
-# crud.create_super_admin()
+crud.create_super_admin(next(get_db()))
 
 
 @app.get("/")
@@ -69,5 +69,6 @@ def test():
 
 
 if __name__ == '__main__':
-    print('少年，我看你骨骼精奇，是万中无一的编程奇才，有个程序员大佬qq群[217840699]你加下吧!维护世界和平就靠你了')
+    print('少年，我看你骨骼精奇，是万中无一的编程奇才，有个程序员大佬qq群[217840699]你加下吧!维护世界和平就靠你了！')
     uvicorn.run(app='main:app', host="127.0.0.1", port=8000, reload=True, )
+

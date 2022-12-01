@@ -29,14 +29,12 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     username: str
     password: str
-    email: str
     sex:str
 
 
 class User(UserBase):
     id: int
     username: str
-    email: str
     sex: str
 
     class Config:

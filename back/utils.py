@@ -17,8 +17,8 @@ from jose import JWTError, jwt
 
 from schemas import TokenData
 
-
 from fastapi.security import OAuth2PasswordBearer
+
 # 执行生成token的地址
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/token")
 
@@ -89,13 +89,11 @@ def verify_token_wrapper():
             detail="请先登陆后尝试",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             try:  # 从token中解码出用户名，
-                token = kwargs["token"]
-                payload = jwt.decode(token, APP_TOKEN_CONFIG.SECRET_KEY, algorithms=[APP_TOKEN_CONFIG.ALGORITHM])
-                username: str = payload.get("sub")  # 从 token中获取用户名
-                print(username)
+                username = get_username_by_token(kwargs["token"])
                 if username is None:
                     return False
                 token_data = TokenData(username=username)
@@ -113,3 +111,14 @@ def verify_token_wrapper():
 
 def verify_e(e, sub, obj, act):
     return e.enforce(sub, obj, act)
+
+
+def get_username_by_token(token):
+    """
+    从token中取出username
+    :param token:
+    :return:
+    """
+    payload = jwt.decode(token, APP_TOKEN_CONFIG.SECRET_KEY, algorithms=[APP_TOKEN_CONFIG.ALGORITHM])
+    username: str = payload.get("sub")  # 从 token中获取用户名
+    return username

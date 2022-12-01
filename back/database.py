@@ -20,7 +20,6 @@ SQLALCHEMY_DATABASE_MEMORY = "sqlite+pysqlite:///:memory:"
 engine_test = create_engine(SQLALCHEMY_DATABASE_MEMORY, echo=False, )
 SessionLocal_test = sessionmaker(autocommit=False, autoflush=False, bind=engine_test)
 
-
 def get_db_to_T_E_S_T():
     '''
     pytest专用

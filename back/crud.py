@@ -14,15 +14,20 @@ python交流学习群号:217840699
 
 from sqlalchemy.orm import Session
 from models import User, CasbinAction, CasbinObject, CasbinCategory, Role, CasbinRule
-
 from utils import verify_password, get_password_hash
+from config import logger
 
 
 def create_super_admin(db: Session):
-    # TODO 创建管理员
-    hashed_password = get_password_hash('123456')
-    add_user(db, User(username='miniadmin', hashed_password=hashed_password, email='admin@example.com', remark='管理员'))
-
+    """
+    系统首次启动的时候创建超级管理员
+    :param db:
+    :return:
+    """
+    if not get_user_by_username(db,"miniadmin"):
+        hashed_password = get_password_hash('123456')
+        add_user(db, User(username='miniadmin', hashed_password=hashed_password, email='admin@example.com', remark='超级管理员，拥有所有权限'))
+        logger.info("系统首次启动的时候创建超级管理员：miniadmin")
 
 # User
 
