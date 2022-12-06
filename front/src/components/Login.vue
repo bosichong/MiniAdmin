@@ -2,52 +2,54 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-12-01 09:10:43
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-01 22:50:01
+ * @LastEditTime: 2022-12-05 08:52:04
  * @FilePath: /MiniAdmin/front/src/components/Login.vue
 -->
 <template>
     <div class="minilogin">
-        <a-row>
+
+        <a-form :model="formState" name="normal_login" class="login-form" @finish="onFinish"
+            @finishFailed="onFinishFailed">
+            <a-form-item label="Username" name="username"
+                :rules="[{ required: true, message: 'Please input your username!' }]">
+                <a-input v-model:value="formState.username">
+                    <template #prefix>
+                        <UserOutlined class="site-form-item-icon" />
+                    </template>
+                </a-input>
+            </a-form-item>
+
+            <a-form-item label="Password" name="password"
+                :rules="[{ required: true, message: 'Please input your password!' }]">
+                <a-input-password v-model:value="formState.password">
+                    <template #prefix>
+                        <LockOutlined class="site-form-item-icon" />
+                    </template>
+                </a-input-password>
+            </a-form-item>
+
+            <a-form-item>
+                <a-form-item name="remember" no-style>
+                    <a-checkbox v-model:checked="formState.remember">Remember me</a-checkbox>
+                </a-form-item>
+                <a class="login-form-forgot" href="">Forgot password</a>
+            </a-form-item>
+
+            <a-form-item>
+                <a-button :disabled="disabled" type="primary" html-type="submit" class="login-form-button">
+                    Log in
+                </a-button>
+                Or
+                <a href="">register now!</a>
+            </a-form-item>
+        </a-form>
+        <!-- <a-row>
             <a-col :xs="2" :sm="4" :md="7" :lg="8" :xl="9"></a-col>
             <a-col :xs="20" :sm="16" :md="10" :lg="8" :xl="6">
-                <a-form :model="formState" name="normal_login" class="login-form" @finish="onFinish"
-                    @finishFailed="onFinishFailed">
-                    <a-form-item label="Username" name="username"
-                        :rules="[{ required: true, message: 'Please input your username!' }]">
-                        <a-input v-model:value="formState.username">
-                            <template #prefix>
-                                <UserOutlined class="site-form-item-icon" />
-                            </template>
-                        </a-input>
-                    </a-form-item>
-
-                    <a-form-item label="Password" name="password"
-                        :rules="[{ required: true, message: 'Please input your password!' }]">
-                        <a-input-password v-model:value="formState.password">
-                            <template #prefix>
-                                <LockOutlined class="site-form-item-icon" />
-                            </template>
-                        </a-input-password>
-                    </a-form-item>
-
-                    <a-form-item>
-                        <a-form-item name="remember" no-style>
-                            <a-checkbox v-model:checked="formState.remember">Remember me</a-checkbox>
-                        </a-form-item>
-                        <a class="login-form-forgot" href="">Forgot password</a>
-                    </a-form-item>
-
-                    <a-form-item>
-                        <a-button :disabled="disabled" type="primary" html-type="submit" class="login-form-button">
-                            Log in
-                        </a-button>
-                        Or
-                        <a href="">register now!</a>
-                    </a-form-item>
-                </a-form>
+                
             </a-col>
             <a-col :xs="2" :sm="4" :md="7" :lg="8" :xl="9"></a-col>
-        </a-row>
+        </a-row> -->
     </div>
 </template>
 <script setup>
@@ -74,34 +76,33 @@ const onFinish = (values) => {
     ).then(function (response) {
         let token = response.data.access_token
         sessionStorage.setItem('token', token)
-
         if (sessionStorage.getItem('username') === null) {
             axios.get("v1/user/me", {
-                headers: {
+                headers:{
                     "accept": "application / json",
                     "Authorization": "Bearer " + sessionStorage.getItem('token')
-                }
-            }).then((function (response) {
-                sessionStorage.setItem("id", response.data.id)
-                sessionStorage.setItem("username", response.data.username)
-                sessionStorage.setItem("email", response.data.email)
-                sessionStorage.setItem("sex", response.data.sex)
-                router.push('/admin/main')
+                },
+            },).then((function (response) {
+                    sessionStorage.setItem("id", response.data.id)
+                    sessionStorage.setItem("username", response.data.username)
+                    sessionStorage.setItem("email", response.data.email)
+                    sessionStorage.setItem("sex", response.data.sex)
+                    router.push('/admin/main')
 
-            }))
-            router.push('/')
-        }
+                }))
+    router.push('/')
+}
 
-    }).catch(function (error) {
-        console.log(error.response.data.detail)
-        let modal = Modal.error()
-        modal.update({
-            title: '错误!',
-            content: error.response.data.detail,
-        })
-
+    }).catch (function (error) {
+    console.log(error.response.data.detail)
+    let modal = Modal.error()
+    modal.update({
+        title: '错误!',
+        content: error.response.data.detail,
     })
-    return false;
+
+})
+return false;
 };
 const onFinishFailed = (errorInfo) => {
     console.log("Failed:", errorInfo);
@@ -124,6 +125,13 @@ const disabled = computed(() => {
 }
 
 .minilogin {
-    margin-top: 150px;
+    position: fixed;
+    width: 350px;
+    height: 200px;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
 }
 </style>

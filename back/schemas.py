@@ -29,13 +29,33 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     username: str
     password: str
-    sex:str
+    sex: str
 
 
 class User(UserBase):
     id: int
     username: str
     sex: str
+    email: str
+    is_active: bool
+    avatar: Union[str, None] = None
+    remark: Union[str, None] = None
 
     class Config:
         orm_mode = True
+
+
+class UserUpdate(BaseModel):
+    user_id:int
+    username: str
+    password: Union[str, None] = ''
+    sex: str
+    email: str
+    avatar: Union[str, None] = None
+    remark: Union[str, None] = None
+
+
+
+class Users(BaseModel):
+    users: list[User]
+    count: int

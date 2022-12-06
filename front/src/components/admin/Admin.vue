@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 21:01:41
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-01 22:25:12
+ * @LastEditTime: 2022-12-06 14:42:35
  * @FilePath: /MiniAdmin/front/src/components/admin/admin.vue
 -->
 <template>
@@ -12,31 +12,31 @@
             <a-menu v-model:selectedKeys="selectedKeys" mode="inline" theme="dark">
                 <a-menu-item key="1">
                     <router-link to="/admin/main">
-                        <reload-outlined spin />
+                        <home-outlined />
                         <span class="nav-home">首页</span>
                     </router-link>
                 </a-menu-item>
                 <a-menu-item key="2">
                     <router-link to="/admin/user">
-                        <check-outlined />
+                        <user-outlined />
                         <span class="nav-text">用户管理</span>
                     </router-link>
                 </a-menu-item>
                 <a-menu-item key="3">
                     <router-link to="/admin/role">
-                        <user-outlined />
+                        <group-outlined />
                         <span class="nav-text">角色管理</span>
                     </router-link>
                 </a-menu-item>
                 <a-menu-item key="4">
                     <router-link to="/admin/casbin_object">
-                        <user-outlined />
+                        <folder-add-outlined />
                         <span class="nav-text">资源管理</span>
                     </router-link>
                 </a-menu-item>
                 <a-menu-item key="5">
                     <router-link to="/admin/casbin_action">
-                        <user-outlined />
+                        <thunderbolt-outlined />
                         <span class="nav-text">动作管理</span>
                     </router-link>
                 </a-menu-item>
@@ -60,7 +60,7 @@
 
 </template>
 <script setup>
-import { UserOutlined, CheckOutlined, ReloadOutlined } from '@ant-design/icons-vue';
+import { UserOutlined, GroupOutlined, HomeOutlined,FolderAddOutlined,ThunderboltOutlined} from '@ant-design/icons-vue';
 import { ref } from 'vue';
 import AppHeader from '../AppHeader.vue';
 import FooterVue from '../Footer.vue';
@@ -68,10 +68,6 @@ import axios from 'axios'
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-
-
-
-
 
 const onCollapse = (collapsed, type) => {
     // console.log(collapsed, type);

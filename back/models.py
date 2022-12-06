@@ -10,7 +10,7 @@ model,sub, obj, act 表示经典三元组: 访问实体 (Subject)，访问资源
 
 from datetime import datetime
 from database import Base
-from sqlalchemy import String, Column, Integer, DateTime, ForeignKey,Boolean
+from sqlalchemy import String, Column, Integer, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 
@@ -23,9 +23,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, comment='用户ID')
     username = Column(String(32), nullable=False, unique=True, comment='用户昵称')
     hashed_password = Column(String(128), nullable=False, comment='用户密码')
-    sex = Column(String(1), nullable=False, default='0', comment='用户性别')
+    sex = Column(String(1), nullable=False, default='1', comment='用户性别')
     email = Column(String(128), nullable=False, unique=True, comment='用户邮箱')
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=False)
     avatar = Column(String(128), comment='用户头像')
     remark = Column(String(128), comment='备注')
     create_time = Column(DateTime, nullable=False, default=datetime.now, comment='创建时间')

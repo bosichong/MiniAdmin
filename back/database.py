@@ -20,6 +20,7 @@ SQLALCHEMY_DATABASE_MEMORY = "sqlite+pysqlite:///:memory:"
 engine_test = create_engine(SQLALCHEMY_DATABASE_MEMORY, echo=False, )
 SessionLocal_test = sessionmaker(autocommit=False, autoflush=False, bind=engine_test)
 
+
 def get_db_to_T_E_S_T():
     '''
     pytest专用
@@ -38,9 +39,9 @@ DB_DIR = os.path.join(BASE_DIR, 'miniadmin_data.db')
 # 数据库访问地址
 SQLALCHEMY_DATABASE_URL = "sqlite:///" + DB_DIR
 # 创建物理SQLite数据库
-engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
+engine = create_engine(SQLALCHEMY_DATABASE_URL+'?check_same_thread=False', echo=False, )
 # 启动会话
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine,)
 
 
 def get_db():

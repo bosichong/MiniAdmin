@@ -10,15 +10,15 @@ v1
 from datetime import datetime, timedelta
 from typing import Union
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
-import crud, schemas
+import crud, schemas, models
 from database import get_db
 from schemas import Token, TokenData
-from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, verify_token_wrapper, get_username_by_token
+from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, verify_token_wrapper, get_username_by_token, get_password_hash
 from config import logger
 
 router = APIRouter(
@@ -66,7 +66,7 @@ def authenticate_user(db: Session, username: str, password: str, ):
 
 
 @router.post("/token", response_model=Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     # 获取用户,如果没有或密码错误并提示错误.
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -75,10 +75,11 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
             detail="用户名或密码错误!",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if not user.is_active:
+
+    if user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_UNAUTHORIZED,
-            detail="帐号已禁用!",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="帐号已被禁用!",
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=APP_TOKEN_CONFIG.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -89,9 +90,9 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+# ########User相关的crud
 @router.get("/user/me", response_model=schemas.User)
-@verify_token_wrapper()
-def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """
     返回当前用户的资料
     """
@@ -100,6 +101,52 @@ def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get
     return user
 
 
+@router.get('/user/user_by_id', response_model=schemas.User)
+async def get_user_by_id(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), user_id: int = 0):
+    """
+    获取指定id用户的资料
+    :param token:
+    :param db:
+    :param user_id:
+    :return: schemas.User
+    """
+    return crud.get_user_by_id(db, user_id)
+
+
+@router.get('/user/get_users', response_model=schemas.Users)
+async def get_users(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), skip: int = 0, limit: int = 10, keyword: str = ''):
+    users = schemas.Users(users=crud.get_users(db, skip, limit, keyword), count=crud.get_users_count_by_keyword(db,keyword))
+    return users
+
+
+@router.get('/user/active_change')
+async def user_active_change(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), user_id: int = 0):
+    return crud.active_change(db, user_id)
+
+
+@router.get('/user/delete_user')
+async def delete_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), user_id: int = 0):
+    return crud.delete_user_by_id(db, user_id)
+
+
+@router.post('/user/update_user')
+async def update_user(user: schemas.UserUpdate, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), ):
+    u = crud.get_user_by_id(db, user.user_id)
+    u.username = user.username
+    u.email = user.email
+    u.sex = user.sex
+    u.remark = user.remark
+    u.avatar = user.avatar
+    if user.password != '':
+        hashed_password = get_password_hash(user.password)
+        u.hashed_password = hashed_password
+    try:
+        db.commit()
+        return True
+    except:
+        return False
+
+
 @router.get("")
-def test():
+async def test():
     return 'Hello MiniAdmin v1'

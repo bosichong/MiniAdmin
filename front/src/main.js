@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:28:55
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-01 20:13:02
+ * @LastEditTime: 2022-12-03 10:19:48
  * @FilePath: /MiniAdmin/front/src/main.js
  */
 import { createApp } from 'vue'
@@ -14,6 +14,10 @@ import './assets/main.css'
 import axios from 'axios'
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000/'
+axios.defaults.headers = {
+  "accept": "application / json",
+  "Authorization": "Bearer " + sessionStorage.getItem('token')
+}
 const app = createApp(App);
 app.use(Antd);
 app.use(router);

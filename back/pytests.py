@@ -49,14 +49,14 @@ class TestDatabase:
             CasbinAction(name='显', action_key='show', description='数据相关组件的显示', user=user),
             CasbinAction(name='test', action_key='test', description='test', user=user),
         ]
-        crud.add_casbinactions(self.db, cas)
+        crud.add_casbin_actions(self.db, cas)
 
         # CasbinCategory
         ccs = [
             CasbinCategory(name='用户管理', description='User表--用户相关权限', user=user),
             CasbinCategory(name='系统管理', description='Role表--角色相关权限', user=user),
         ]
-        crud.add_casbincategorys(self.db, ccs)
+        crud.add_casbin_categorys(self.db, ccs)
 
         # 创建CasbinObject 资源并分类
         user_cc = crud.get_casbin_category_by_name(self.db, '用户管理')
@@ -68,7 +68,7 @@ class TestDatabase:
             CasbinObject(name='动作管理', object_key='CasbinAction', description='CasbinAction表--动作相关权限', user=user, cc=user_cc),
             CasbinObject(name='资源分类', object_key='CasbinCategory', description='CasbinCategory表--资源分类相关权限', user=user, cc=user_cc),
         ]
-        crud.add_casbinobjects(self.db, cos)
+        crud.add_casbin_objects(self.db, cos)
 
         # 设置超级管理员
         role = crud.get_role_by_id(self.db, 1)  # 超级管理员组

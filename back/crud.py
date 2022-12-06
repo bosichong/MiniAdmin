@@ -17,19 +17,84 @@ from models import User, CasbinAction, CasbinObject, CasbinCategory, Role, Casbi
 from utils import verify_password, get_password_hash
 from config import logger
 
+import random
 
-def create_super_admin(db: Session):
+
+def create_test_data(db: Session):
     """
-    系统首次启动的时候创建超级管理员
+    添加测试数据
     :param db:
     :return:
     """
-    if not get_user_by_username(db,"miniadmin"):
-        hashed_password = get_password_hash('123456')
-        add_user(db, User(username='miniadmin', hashed_password=hashed_password, email='admin@example.com', remark='超级管理员，拥有所有权限'))
-        logger.info("系统首次启动的时候创建超级管理员：miniadmin")
 
-# User
+    # 创建超级管理员
+    hashed_password = get_password_hash('123456')
+    if not get_user_by_username(db, "miniadmin"):
+        add_user(db, User(username='miniadmin', hashed_password=hashed_password, email='admin@example.com', remark='超级管理员，拥有所有权限'))
+        logger.info("创建超级管理员：miniadmin,以及一些模拟数据。")
+    user = get_user_by_username(db, "miniadmin")
+    # 添加一些用户
+    if get_users_count(db) <= 1:
+        for i in range(118):
+            sex = str(random.randint(0, 1))
+            is_active = False
+            if random.randint(0, 1): is_active = True
+            k = str(i)
+            u = User(username='mini' + k, hashed_password=hashed_password, email='admin' + k + '@example.com',
+                     sex=sex, is_active=is_active, remark='临时测试用户')
+            add_user(db, u)
+
+    if get_role_count(db) <= 0:
+        # 创建角色role
+        add_role(db, Role(name='超级管理员', role_key='role_superminiadmin', description='超级管理员,拥有所有系统权限', user=user))
+        add_role(db, Role(name='管理员', role_key='role_miniadmin', description='拥有大部分管理权限', user=user))
+        add_role(db, Role(name='普通用户', role_key='role_generaluser', description='默认注册的用户', user=user))
+
+    if get_casbin_action_count(db) <= 0:
+        # 创建CasbinAction
+        cas = [
+            CasbinAction(name='增', action_key='create', description='增加数据', user=user),
+            CasbinAction(name='删', action_key='delete', description='删除数据', user=user),
+            CasbinAction(name='改', action_key='update', description='更新数据', user=user),
+            CasbinAction(name='查', action_key='read', description='读取或查询数据', user=user),
+            CasbinAction(name='显', action_key='show', description='数据相关组件的显示', user=user),
+        ]
+        add_casbin_actions(db, cas)
+    if get_casbin_category_count(db) <= 0:
+        # 创建CasbinCategory
+        ccs = [
+            CasbinCategory(name='用户管理', description='User表--用户相关权限', user=user),
+            CasbinCategory(name='系统管理', description='Role表--角色相关权限', user=user),
+        ]
+        add_casbin_categorys(db, ccs)
+
+    if get_casbin_object_count(db) <= 0:
+        # 创建CasbinObject 资源并分类
+        user_cc = get_casbin_category_by_name(db, '用户管理')
+        sys_cc = get_casbin_category_by_name(db, '系统管理')
+        cos = [
+            CasbinObject(name='用户管理', object_key='User', description='User表--用户相关权限', user=user, cc=user_cc),
+            CasbinObject(name='角色管理', object_key='Role', description='Role--角色相关权限', user=user, cc=sys_cc),
+            CasbinObject(name='资源管理', object_key='CasbinObject', description='CasbinObject--资源相关权限', user=user, cc=sys_cc),
+            CasbinObject(name='动作管理', object_key='CasbinAction', description='CasbinAction表--动作相关权限', user=user, cc=sys_cc),
+            CasbinObject(name='资源分类', object_key='CasbinCategory', description='CasbinCategory表--资源分类相关权限', user=user, cc=sys_cc),
+        ]
+        add_casbin_objects(db, cos)
+    if get_casbin_rule_count(db) <=0 :
+        # 设置超级管理员
+        role = get_role_by_id(db, 1)  # 超级管理员组
+        cas = get_casbin_actions(db)  # 所有动作
+        cos = get_casbin_objects(db)  # 所有资源
+        crs = []
+        for co in cos:
+            for ca in cas:
+                crs.append(CasbinRule(ptype='p', v0=role.role_key, v1=co.object_key, v2=ca.action_key))
+
+        # 为超级管理员增加所有policy
+        create_casbin_rules(db, crs)
+        # 设置用户miniadmin的角色为超级管理员
+        create_casbin_rule_g(db, CasbinRule(ptype='g', v0=user.username, v1=role.role_key))
+
 
 def add_user(db: Session, user: User):
     """
@@ -51,6 +116,22 @@ def get_user_by_username(db: Session, username: str):
     return db.query(User).filter_by(username=username).first()
 
 
+def active_change(db: Session, user_id):
+    """
+    修改用户锁定
+    :param db:
+    :param id:
+    :return:
+    """
+    user = get_user_by_id(db, user_id)
+    if user:
+        user.is_active = not user.is_active
+        db.commit()
+        return True
+    else:
+        return False
+
+
 def change_user_password(db: Session, old_password: str, new_password: str, user_id: int):
     """
     description: 输入旧密码校验,成功后,修改新密码.
@@ -65,17 +146,31 @@ def change_user_password(db: Session, old_password: str, new_password: str, user
         return False
 
 
-def get_users(db: Session, offset: int, limit: int):
-    return db.query(User).offset(offset).limit(limit).all()
+def get_users(db: Session, offset: int, limit: int, keyword: str):
+    return db.query(User).filter(User.username.like("%" + keyword + "%")).offset(offset).limit(limit).all()
+
+
+def get_users_count_by_keyword(db: Session, keyword: str):
+    return db.query(User).filter(User.username.like("%" + keyword + "%")).count()
+
+
+def get_users_count(db: Session):
+    """
+    return 当前系统的用户数量
+    :param db:
+    :return:
+    """
+    return db.query(User).count()
 
 
 def delete_user_by_id(db: Session, user_id):
-    user = db.query(User).filter_by(id=user_id).first()
-    # user = db.query(User).filter(User.id == user_id).first()
-    # user = db.query(User).where(User.id == user_id).first()
-    db.delete(user)
-    db.commit()
-    return not user
+    try:
+        user = db.query(User).filter_by(id=user_id).first()
+        db.delete(user)
+        db.commit()
+        return True
+    except Exception as e:
+        return False
 
 
 def change_user_role(db: Session, user_id, role_key):
@@ -99,6 +194,10 @@ def add_role(db: Session, role: Role):
     db.add(role)
     db.commit()
     return role
+
+
+def get_role_count(db: Session):
+    return db.query(Role).count()
 
 
 def get_role_by_id(db: Session, role_id: int):
@@ -195,6 +294,9 @@ def delete_casbin_rules(db, role_key):
 
 # CasbinAction 动作
 
+def get_casbin_action_count(db: Session):
+    return db.query(CasbinAction).count()
+
 
 def add_casbin_action(db: Session, casbinaction: CasbinAction):
     db.add(casbinaction)
@@ -202,7 +304,7 @@ def add_casbin_action(db: Session, casbinaction: CasbinAction):
     return casbinaction
 
 
-def add_casbinactions(db: Session, casbinactions):
+def add_casbin_actions(db: Session, casbinactions):
     for c in casbinactions:
         db.add(c)
     db.commit()
@@ -270,7 +372,7 @@ def add_casbin_category(db: Session, casbincategory: CasbinCategory):
     db.commit()
 
 
-def add_casbincategorys(db: Session, casbincategorys):
+def add_casbin_categorys(db: Session, casbincategorys):
     for cc in casbincategorys:
         db.add(cc)
     db.commit()
@@ -280,14 +382,23 @@ def get_casbin_category_by_name(db: Session, name: str):
     return db.query(CasbinCategory).filter(CasbinCategory.name == name).first()
 
 
+def get_casbin_category_count(db: Session):
+    return db.query(CasbinCategory).count()
+
+
 # CasbinObject 资源
+
+
+def get_casbin_object_count(db: Session):
+    return db.query(CasbinObject).count()
+
 
 def add_casbin_object(db: Session, casbinobject: CasbinObject):
     db.add(casbinobject)
     db.commit()
 
 
-def add_casbinobjects(db: Session, casbinobjects):
+def add_casbin_objects(db: Session, casbinobjects):
     for co in casbinobjects:
         db.add(co)
     db.commit()
@@ -392,7 +503,7 @@ def create_casbin_rule_g(db: Session, cr_g):
     """
     设置用户的权限组
     :param db:
-    :param cr_g:
+    :param cr_g: 一个casbinrule ptype="g"
     :return: 存在返回1 不存在则增加数据并返回0,并添加该用户到权限组
     """
     k = filter_casbin_rule_g(db, cr_g)
