@@ -35,10 +35,10 @@ class TestDatabase:
         user = crud.get_user_by_id(self.db, 1)
 
         # 创建角色role
-        crud.add_role(self.db, Role(name='超级管理员', role_key='role_superminiadmin', description='超级管理员,拥有所有系统权限', user=user))
-        crud.add_role(self.db, Role(name='管理员', role_key='role_miniadmin', description='拥有大部分管理权限', user=user))
-        crud.add_role(self.db, Role(name='普通用户', role_key='role_generaluser', description='默认注册的用户', user=user))
-        crud.add_role(self.db, Role(name='test', role_key='role_test', description='testrole', user=user))
+        crud.create_role(self.db, Role(name='超级管理员', role_key='role_superminiadmin', description='超级管理员,拥有所有系统权限', user=user))
+        crud.create_role(self.db, Role(name='管理员', role_key='role_miniadmin', description='拥有大部分管理权限', user=user))
+        crud.create_role(self.db, Role(name='普通用户', role_key='role_generaluser', description='默认注册的用户', user=user))
+        crud.create_role(self.db, Role(name='test', role_key='role_test', description='testrole', user=user))
 
         # 创建CasbinAction
         cas = [
@@ -156,7 +156,7 @@ class TestDatabase:
 
     def test_add_role(self):
         user = crud.get_user_by_id(self.db, 1)
-        crud.add_role(self.db, Role(name='test888', role_key='role_test888', description='testrole888', user=user))
+        crud.create_role(self.db, Role(name='test888', role_key='role_test888', description='testrole888', user=user))
 
     def test_update_role(self):
         user = crud.get_user_by_id(self.db, 1)

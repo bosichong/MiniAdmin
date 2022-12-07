@@ -46,7 +46,7 @@ class User(UserBase):
 
 
 class UserUpdate(BaseModel):
-    user_id:int
+    user_id: int
     username: str
     password: Union[str, None] = ''
     sex: str
@@ -55,7 +55,20 @@ class UserUpdate(BaseModel):
     remark: Union[str, None] = None
 
 
-
 class Users(BaseModel):
     users: list[User]
     count: int
+
+
+class Role(BaseModel):
+    name: str
+    role_key: str
+    description: str
+    user_id: str
+
+
+class EditRole(BaseModel):
+    old_role_id: int
+    name: str
+    role_key: str
+    description: str

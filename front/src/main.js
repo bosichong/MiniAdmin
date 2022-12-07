@@ -2,13 +2,14 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:28:55
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-03 10:19:48
+ * @LastEditTime: 2022-12-07 08:32:45
  * @FilePath: /MiniAdmin/front/src/main.js
  */
 import { createApp } from 'vue'
 import Antd from 'ant-design-vue';
 import App from './App.vue'
-import 'ant-design-vue/dist/antd.css';
+// import 'ant-design-vue/dist/antd.css';
+import 'ant-design-vue/dist/antd.dark.css';
 import router from './router';
 import './assets/main.css'
 import axios from 'axios'

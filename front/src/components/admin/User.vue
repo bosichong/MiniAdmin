@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:06:33
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-06 14:10:32
+ * @LastEditTime: 2022-12-07 15:01:06
  * @FilePath: /MiniAdmin/front/src/components/admin/User.vue
 -->
 <template>
@@ -21,7 +21,7 @@
         <span v-else>男</span>
       </template>
       <template v-else-if="column.key === 'is_active'">
-        <a-switch v-model:checked="record.is_active" @click="active_change(record.id)" />
+        <a-switch v-model:checked="record.is_active" @click="active_change(record.id)" checked-children="开" un-checked-children="关"/>
       </template>
       <template v-else-if="column.key === 'action'">
         <span>
@@ -71,10 +71,9 @@
 
 </template>
 <script setup>
-import { ref, reactive, toRaw } from 'vue';
+import { ref, reactive, toRaw ,createVNode} from 'vue';
 import axios from 'axios'
 import { ExclamationCircleOutlined, LockOutlined, UserOutlined } from '@ant-design/icons-vue';
-import { createVNode } from 'vue';
 
 import { Modal } from 'ant-design-vue';
 
@@ -136,7 +135,6 @@ const formUserEdit = reactive({
 
 /**
  * 提交修改用户资料
- * @param {*} user_id 
  */
 const onSubmit = () => {
   // console.log('submit!', toRaw(formUserEdit));

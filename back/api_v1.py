@@ -115,7 +115,7 @@ async def get_user_by_id(token: str = Depends(oauth2_scheme), db: Session = Depe
 
 @router.get('/user/get_users', response_model=schemas.Users)
 async def get_users(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), skip: int = 0, limit: int = 10, keyword: str = ''):
-    users = schemas.Users(users=crud.get_users(db, skip, limit, keyword), count=crud.get_users_count_by_keyword(db,keyword))
+    users = schemas.Users(users=crud.get_users(db, skip, limit, keyword), count=crud.get_users_count_by_keyword(db, keyword))
     return users
 
 
@@ -145,6 +145,43 @@ async def update_user(user: schemas.UserUpdate, token: str = Depends(oauth2_sche
         return True
     except:
         return False
+
+
+# #############Role相关的api接口
+@router.get('/role/get_roles')
+async def get_roles(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    return crud.get_roles(db)
+
+
+@router.post('/role/create_role')
+async def create_role(role: schemas.Role, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), ):
+    new_role = models.Role()
+    new_role.name = role.name
+    new_role.role_key = role.role_key
+    new_role.description = role.description
+    new_role.user_id = int(role.user_id)
+    return crud.create_role(db, new_role)
+
+
+@router.get('/role/get_role_by_id')
+async def get_role_by_id(role_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    return crud.get_role_by_id(db, role_id)
+
+
+@router.post('/role/update_role')
+async def update_role_by_id(role: schemas.EditRole, token: str = Depends(oauth2_scheme),
+                            db: Session = Depends(get_db)):
+    new_role = models.Role()
+    new_role.name = role.name
+    new_role.role_key = role.role_key
+    new_role.description = role.description
+    return crud.update_role_by_id(db, role.old_role_id, new_role)
+
+
+@router.get('/role/delete_role')
+async def delete_role_by_id(role_id: int, token: str = Depends(oauth2_scheme),
+                            db: Session = Depends(get_db)):
+    return crud.delete_role_by_id(db, role_id)
 
 
 @router.get("")

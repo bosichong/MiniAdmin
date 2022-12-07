@@ -2,12 +2,11 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:48:29
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-01 20:04:56
+ * @LastEditTime: 2022-12-07 08:19:59
  * @FilePath: /MiniAdmin/front/src/components/AppHeader.vue
 -->
 <template lang="">
     <a-page-header
-    style="border: 1px solid rgb(235, 237, 240)"
     sub-title="这是一个简洁通用的管理后台"
     @back="() => null"
   >

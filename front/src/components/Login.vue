@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-12-01 09:10:43
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-05 08:52:04
+ * @LastEditTime: 2022-12-07 09:07:30
  * @FilePath: /MiniAdmin/front/src/components/Login.vue
 -->
 <template>
@@ -43,13 +43,6 @@
                 <a href="">register now!</a>
             </a-form-item>
         </a-form>
-        <!-- <a-row>
-            <a-col :xs="2" :sm="4" :md="7" :lg="8" :xl="9"></a-col>
-            <a-col :xs="20" :sm="16" :md="10" :lg="8" :xl="6">
-                
-            </a-col>
-            <a-col :xs="2" :sm="4" :md="7" :lg="8" :xl="9"></a-col>
-        </a-row> -->
     </div>
 </template>
 <script setup>
@@ -83,7 +76,7 @@ const onFinish = (values) => {
                     "Authorization": "Bearer " + sessionStorage.getItem('token')
                 },
             },).then((function (response) {
-                    sessionStorage.setItem("id", response.data.id)
+                    sessionStorage.setItem("user_id", response.data.id)
                     sessionStorage.setItem("username", response.data.username)
                     sessionStorage.setItem("email", response.data.email)
                     sessionStorage.setItem("sex", response.data.sex)

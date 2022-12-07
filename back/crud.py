@@ -46,9 +46,9 @@ def create_test_data(db: Session):
 
     if get_role_count(db) <= 0:
         # 创建角色role
-        add_role(db, Role(name='超级管理员', role_key='role_superminiadmin', description='超级管理员,拥有所有系统权限', user=user))
-        add_role(db, Role(name='管理员', role_key='role_miniadmin', description='拥有大部分管理权限', user=user))
-        add_role(db, Role(name='普通用户', role_key='role_generaluser', description='默认注册的用户', user=user))
+        create_role(db, Role(name='超级管理员', role_key='role_superminiadmin', description='超级管理员,拥有所有系统权限', user=user))
+        create_role(db, Role(name='管理员', role_key='role_miniadmin', description='拥有大部分管理权限', user=user))
+        create_role(db, Role(name='普通用户', role_key='role_generaluser', description='默认注册的用户', user=user))
 
     if get_casbin_action_count(db) <= 0:
         # 创建CasbinAction
@@ -80,7 +80,7 @@ def create_test_data(db: Session):
             CasbinObject(name='资源分类', object_key='CasbinCategory', description='CasbinCategory表--资源分类相关权限', user=user, cc=sys_cc),
         ]
         add_casbin_objects(db, cos)
-    if get_casbin_rule_count(db) <=0 :
+    if get_casbin_rule_count(db) <= 0:
         # 设置超级管理员
         role = get_role_by_id(db, 1)  # 超级管理员组
         cas = get_casbin_actions(db)  # 所有动作
@@ -190,10 +190,17 @@ def change_user_role(db: Session, user_id, role_key):
 
 # Role
 
-def add_role(db: Session, role: Role):
+def get_roles(db: Session):
+    return db.query(Role).all()
+
+
+def create_role(db: Session, role: Role):
     db.add(role)
-    db.commit()
-    return role
+    try:
+        db.commit()
+        return role
+    except:
+        return False
 
 
 def get_role_count(db: Session):
@@ -235,7 +242,7 @@ def update_role_by_id(db: Session, old_role_id, new_role):
         for cr in crs:
             cr.v0 = new_role.role_key
         db.commit()
-        return role
+        return True
     else:
         return False
 
@@ -257,6 +264,8 @@ def delete_role_by_id(db: Session, role_id):
         crs = _get_casbin_rules_by_ptype_p_v0(db, role.role_key)
         for cr in crs:
             db.delete(cr)
+        db.commit()
+        db.delete(role)
         db.commit()
         return True
     else:
