@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:42:59
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-01 11:16:24
+ * @LastEditTime: 2022-12-08 09:15:30
  * @FilePath: /MiniAdmin/front/src/router/index.js
  */
 import { createRouter, createWebHistory } from 'vue-router'
@@ -94,16 +94,6 @@ const routes = [
                     title: '动作管理',
                     icon: 'object',
                     permission: ['CasbinAction', 'show']
-                }
-            },
-            {
-                path: 'casbin_category',
-                name: 'CasbinCategory',
-                component: () => import('../components/admin/CasbinCategory.vue'),
-                meta: {
-                    title: '资源分类管理',
-                    icon: 'object',
-                    permission: ['CasbinCategory', 'show']
                 }
             },
 

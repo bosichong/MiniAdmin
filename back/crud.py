@@ -13,7 +13,7 @@ python交流学习群号:217840699
 """
 
 from sqlalchemy.orm import Session
-from models import User, CasbinAction, CasbinObject, CasbinCategory, Role, CasbinRule
+from models import User, CasbinAction, CasbinObject, Role, CasbinRule
 from utils import verify_password, get_password_hash
 from config import logger
 
@@ -60,24 +60,14 @@ def create_test_data(db: Session):
             CasbinAction(name='显', action_key='show', description='数据相关组件的显示', user=user),
         ]
         add_casbin_actions(db, cas)
-    if get_casbin_category_count(db) <= 0:
-        # 创建CasbinCategory
-        ccs = [
-            CasbinCategory(name='用户管理', description='User表--用户相关权限', user=user),
-            CasbinCategory(name='系统管理', description='Role表--角色相关权限', user=user),
-        ]
-        add_casbin_categorys(db, ccs)
 
     if get_casbin_object_count(db) <= 0:
-        # 创建CasbinObject 资源并分类
-        user_cc = get_casbin_category_by_name(db, '用户管理')
-        sys_cc = get_casbin_category_by_name(db, '系统管理')
         cos = [
-            CasbinObject(name='用户管理', object_key='User', description='User表--用户相关权限', user=user, cc=user_cc),
-            CasbinObject(name='角色管理', object_key='Role', description='Role--角色相关权限', user=user, cc=sys_cc),
-            CasbinObject(name='资源管理', object_key='CasbinObject', description='CasbinObject--资源相关权限', user=user, cc=sys_cc),
-            CasbinObject(name='动作管理', object_key='CasbinAction', description='CasbinAction表--动作相关权限', user=user, cc=sys_cc),
-            CasbinObject(name='资源分类', object_key='CasbinCategory', description='CasbinCategory表--资源分类相关权限', user=user, cc=sys_cc),
+            CasbinObject(name='用户管理', object_key='User', description='User表--用户相关权限', user=user, ),
+            CasbinObject(name='角色管理', object_key='Role', description='Role--角色相关权限', user=user, ),
+            CasbinObject(name='资源管理', object_key='CasbinObject', description='CasbinObject--资源相关权限', user=user, ),
+            CasbinObject(name='动作管理', object_key='CasbinAction', description='CasbinAction表--动作相关权限', user=user, ),
+            CasbinObject(name='资源分类', object_key='CasbinCategory', description='CasbinCategory表--资源分类相关权限', user=user, ),
         ]
         add_casbin_objects(db, cos)
     if get_casbin_rule_count(db) <= 0:
@@ -374,27 +364,6 @@ def get_casbin_actions(db: Session, ):
     return db.query(CasbinAction).all()
 
 
-# CasbinCategory 资源分类
-
-def add_casbin_category(db: Session, casbincategory: CasbinCategory):
-    db.add(casbincategory)
-    db.commit()
-
-
-def add_casbin_categorys(db: Session, casbincategorys):
-    for cc in casbincategorys:
-        db.add(cc)
-    db.commit()
-
-
-def get_casbin_category_by_name(db: Session, name: str):
-    return db.query(CasbinCategory).filter(CasbinCategory.name == name).first()
-
-
-def get_casbin_category_count(db: Session):
-    return db.query(CasbinCategory).count()
-
-
 # CasbinObject 资源
 
 
@@ -402,9 +371,13 @@ def get_casbin_object_count(db: Session):
     return db.query(CasbinObject).count()
 
 
-def add_casbin_object(db: Session, casbinobject: CasbinObject):
-    db.add(casbinobject)
-    db.commit()
+def create_casbin_object(db: Session, casbinobject: CasbinObject):
+    try:
+        db.add(casbinobject)
+        db.commit()
+        return True
+    except:
+        return False
 
 
 def add_casbin_objects(db: Session, casbinobjects):
@@ -443,6 +416,26 @@ def update_casbin_object(db: Session, old_id, name, obj_key, description):
             for co in cos:
                 co.v1 = obj_key
             db.commit()
+        return True
+    else:
+        return False
+
+
+def delete_casbin_object_by_id(db: Session, ac_id: int):
+    """
+    删除casbin_action，同时删除casbinrule中存在的动作
+    :param db: db
+    :param ac_id: int
+    :return: bool
+    """
+    obj = get_casbin_object_by_id(db, ac_id)
+    obj_key = obj.object_key
+    if obj:
+        db.delete(obj)
+        crs = get_casbin_rules_by_obj_key(db, obj_key)
+        for cr in crs:
+            db.delete(cr)
+        db.commit()
         return True
     else:
         return False

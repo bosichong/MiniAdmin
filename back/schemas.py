@@ -72,3 +72,17 @@ class EditRole(BaseModel):
     name: str
     role_key: str
     description: str
+
+
+class createCasbinObject(BaseModel):
+    name: str
+    object_key: str
+    description: str
+    user_id: int
+
+
+class EditCasbinObject(BaseModel):
+    old_co_id: int
+    name: str
+    object_key: str
+    description: str

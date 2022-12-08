@@ -34,7 +34,6 @@ class User(Base):
     roles = relationship('Role', uselist=True, back_populates='user')
     cos = relationship('CasbinObject', uselist=True, back_populates='user')
     cas = relationship('CasbinAction', uselist=True, back_populates='user')
-    ccs = relationship('CasbinCategory', uselist=True, back_populates='user')
 
 
 class Role(Base):
@@ -64,8 +63,6 @@ class CasbinObject(Base):
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False, comment='创建者')
     user = relationship('User', back_populates='cos')
 
-    casbin_category_id = Column(Integer, ForeignKey('casbin_category.id'), nullable=False, comment='所属分类')
-    cc = relationship('CasbinCategory', back_populates='cos')
 
 
 class CasbinAction(Base):
@@ -83,20 +80,6 @@ class CasbinAction(Base):
     user = relationship('User', back_populates='cas')
 
 
-class CasbinCategory(Base):
-    __tablename__ = 'casbin_category'
-    __table_args__ = {'extend_existing': True}
-
-    id = Column(Integer, primary_key=True, autoincrement=True, comment='ID')
-    name = Column(String(128), nullable=False, unique=True, comment='分类名称')
-    description = Column(String(128), nullable=True, comment='分类描述')
-    create_time = Column(DateTime, nullable=False, default=datetime.now, comment='创建时间')
-    update_time = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新时间')
-
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False, comment='创建者')
-    user = relationship('User', back_populates='ccs')
-
-    cos = relationship('CasbinObject', uselist=True, back_populates='cc')
 
 
 class CasbinRule(Base):

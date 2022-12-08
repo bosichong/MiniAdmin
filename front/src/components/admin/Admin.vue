@@ -2,12 +2,12 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 21:01:41
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-07 08:42:01
+ * @LastEditTime: 2022-12-08 09:15:55
  * @FilePath: /MiniAdmin/front/src/components/admin/admin.vue
 -->
 <template>
     <a-layout>
-        <a-layout-sider breakpoint="lg" collapsed-width="0" @collapse="onCollapse" @breakpoint="onBreakpoint">
+        <a-layout-sider breakpoint="lg" collapsed-width="0" @collapse="onCollapse" @breakpoint="onBreakpoint" :style="{background:'none'}">
             <div class="logo" />
             <a-menu v-model:selectedKeys="selectedKeys" v-model:openKeys="openKeys" mode="inline">
                 <a-menu-item key="1">
@@ -29,6 +29,12 @@
                             <span>用户列表</span>
                         </router-link>
                     </a-menu-item>
+                    <a-menu-item key="3">
+                        <router-link to="/admin/role">
+                            <group-outlined />
+                            <span>角色管理</span>
+                        </router-link>
+                    </a-menu-item>
                 </a-sub-menu>
 
                 <a-sub-menu key="sub2">
@@ -38,19 +44,13 @@
                             <span>权限管理</span>
                         </span>
                     </template>
-                    <a-menu-item key="3">
-                        <router-link to="/admin/role">
-                            <group-outlined />
-                            <span>角色管理</span>
-                        </router-link>
-                    </a-menu-item>
-                    <a-menu-item key="4">
+                    <a-menu-item key="5">
                         <router-link to="/admin/casbin_object">
                             <folder-add-outlined />
                             <span>资源管理</span>
                         </router-link>
                     </a-menu-item>
-                    <a-menu-item key="5">
+                    <a-menu-item key="6">
                         <router-link to="/admin/casbin_action">
                             <thunderbolt-outlined />
                             <span>动作管理</span>
@@ -61,10 +61,10 @@
             </a-menu>
         </a-layout-sider>
         <a-layout>
-            <a-layout-header :style="{ padding: 0 }">
+            <a-layout-header :style="{ padding: 0 ,background:'none'}">
                 <AppHeader />
             </a-layout-header>
-            <a-layout-content :style="{ margin: '24px 16px 0' }">
+            <a-layout-content :style="{ margin: '8px 8px 0',}">
                 <div :style="{ padding: '24px',  height: '100%' }">
                     <router-view></router-view>
                 </div>
@@ -85,6 +85,8 @@ import FooterVue from '../Footer.vue';
 import axios from 'axios'
 import { useRouter } from "vue-router";
 
+
+
 const router = useRouter();
 
 const onCollapse = (collapsed, type) => {
@@ -101,8 +103,12 @@ const openKeys = ref(['sub1','sub2'])
 <style>
 .logo {
     height: 32px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(115, 184, 173, 0.1);
     margin: 16px;
+}
+
+.ant-layout{
+    background:none;
 }
 
 </style>

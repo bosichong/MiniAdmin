@@ -184,6 +184,40 @@ async def delete_role_by_id(role_id: int, token: str = Depends(oauth2_scheme),
     return crud.delete_role_by_id(db, role_id)
 
 
+######################################
+# CasbinObject相关的api接口
+######################################
+
+@router.get('/co/get_cos')
+async def get_cos(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    return crud.get_casbin_objects(db)
+
+
+@router.post('/co/create_co')
+async def create_casbin_object(co: schemas.createCasbinObject, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    new_co = models.CasbinObject()
+    new_co.name = co.name
+    new_co.object_key = co.object_key
+    new_co.description = co.description
+    new_co.user_id = co.user_id
+    return crud.create_casbin_object(db, new_co)
+
+
+@router.get('/co/get_co')
+async def get_casbin_object(co_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    return crud.get_casbin_object_by_id(db, co_id)
+
+
+@router.post('/co/update_co')
+async def update_casbin_object_by_id(co: schemas.EditCasbinObject, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    return crud.update_casbin_object(db, co.old_co_id, co.name, co.object_key, co.description)
+
+
+@router.get('/co/delete_co')
+async def delete_casbin_object_by_id(co_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    return crud.delete_casbin_object_by_id(db, co_id)
+
+
 @router.get("")
 async def test():
     return 'Hello MiniAdmin v1'

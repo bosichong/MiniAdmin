@@ -15,9 +15,8 @@ from config import BASE_DIR
 from casbin_sqlalchemy_adapter import Adapter
 from database import get_db_to_T_E_S_T, engine_test, Base
 import crud
-from models import User, CasbinAction, CasbinObject, CasbinCategory, Role, CasbinRule
+from models import User, CasbinAction, CasbinObject, Role, CasbinRule
 from utils import get_password_hash, verify_password, verify_casbin_decorator, verify_e
-
 
 
 class TestDatabase:
@@ -51,22 +50,14 @@ class TestDatabase:
         ]
         crud.add_casbin_actions(self.db, cas)
 
-        # CasbinCategory
-        ccs = [
-            CasbinCategory(name='用户管理', description='User表--用户相关权限', user=user),
-            CasbinCategory(name='系统管理', description='Role表--角色相关权限', user=user),
-        ]
-        crud.add_casbin_categorys(self.db, ccs)
+        # 创建CasbinObject
 
-        # 创建CasbinObject 资源并分类
-        user_cc = crud.get_casbin_category_by_name(self.db, '用户管理')
-        sys_cc = crud.get_casbin_category_by_name(self.db, '系统管理')
         cos = [
-            CasbinObject(name='用户管理', object_key='User', description='User表--用户相关权限', user=user, cc=user_cc),
-            CasbinObject(name='角色管理', object_key='Role', description='Role--角色相关权限', user=user, cc=sys_cc),
-            CasbinObject(name='资源管理', object_key='CasbinObject', description='CasbinObject--资源相关权限', user=user, cc=user_cc),
-            CasbinObject(name='动作管理', object_key='CasbinAction', description='CasbinAction表--动作相关权限', user=user, cc=user_cc),
-            CasbinObject(name='资源分类', object_key='CasbinCategory', description='CasbinCategory表--资源分类相关权限', user=user, cc=user_cc),
+            CasbinObject(name='用户管理', object_key='User', description='User表--用户相关权限', user=user, ),
+            CasbinObject(name='角色管理', object_key='Role', description='Role--角色相关权限', user=user, ),
+            CasbinObject(name='资源管理', object_key='CasbinObject', description='CasbinObject--资源相关权限', user=user, ),
+            CasbinObject(name='动作管理', object_key='CasbinAction', description='CasbinAction表--动作相关权限', user=user, ),
+            CasbinObject(name='资源分类', object_key='CasbinCategory', description='CasbinCategory表--资源分类相关权限', user=user, ),
         ]
         crud.add_casbin_objects(self.db, cos)
 
@@ -122,9 +113,6 @@ class TestDatabase:
         assert verify_password('654321', user.hashed_password)
         assert crud.change_user_password(self.db, '654321', '123456', user.id)
 
-    def test_get_users(self):
-        users = crud.get_users(self.db, 0, 10)
-        assert len(users) > 0
 
     def test_add_user_role(self):
         # 为用户增加角色role 添加 ptype=g 用户 角色
@@ -242,11 +230,13 @@ class TestDatabase:
         cas = crud.get_casbin_actions(self.db)  # 动作
         cos = crud.get_casbin_objects(self.db)  # 资源
         crs = []
+
         for i in range(1):
             for ca in cas:
                 crs.append(CasbinRule(ptype='p', v0=role.role_key, v1=cos[i].object_key, v2=ca.action_key))
         assert crud.create_casbin_rules(self.db, crs) == 0
         e = self.get_casbin_e()
+
         @verify_casbin_decorator(e, user.username, 'User', 'delete')
         def haha():
             return True
@@ -257,16 +247,15 @@ class TestDatabase:
             for ca in cas:
                 crs.append(CasbinRule(ptype='p', v0=role.role_key, v1=co.object_key, v2=ca.action_key))
 
-        crud.change_role_casbinrules(self.db,role.role_key,crs) # 为test添加所有权限！
+        crud.change_role_casbinrules(self.db, role.role_key, crs)  # 为test添加所有权限！
         # self.print_crs()
         e = self.get_casbin_e()
 
         @verify_casbin_decorator(e, user.username, 'CasbinCategory', 'delete')
         def haha():
             return True
-        assert haha() != 433 # 这里应该是通过
 
-
+        assert haha() != 433  # 这里应该是通过
 
     def print_crs(self):
         crs = crud._get_casbin_rules(self.db)
