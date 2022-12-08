@@ -64,7 +64,6 @@ class CasbinObject(Base):
     user = relationship('User', back_populates='cos')
 
 
-
 class CasbinAction(Base):
     __tablename__ = 'casbin_action'
     __table_args__ = {'extend_existing': True}
@@ -78,8 +77,6 @@ class CasbinAction(Base):
 
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False, comment='创建者')
     user = relationship('User', back_populates='cas')
-
-
 
 
 class CasbinRule(Base):

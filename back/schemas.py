@@ -86,3 +86,17 @@ class EditCasbinObject(BaseModel):
     name: str
     object_key: str
     description: str
+
+
+class createCasbinAction(BaseModel):
+    name:str
+    action_key:str
+    description: str
+    user_id: int
+
+
+class EditCasbinAction(BaseModel):
+    old_ca_id: int
+    name: str
+    action_key: str
+    description: str

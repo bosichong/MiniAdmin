@@ -297,10 +297,13 @@ def get_casbin_action_count(db: Session):
     return db.query(CasbinAction).count()
 
 
-def add_casbin_action(db: Session, casbinaction: CasbinAction):
-    db.add(casbinaction)
-    db.commit()
-    return casbinaction
+def create_casbin_action(db: Session, casbinaction: CasbinAction):
+    try:
+        db.add(casbinaction)
+        db.commit()
+        return True
+    except:
+        return False
 
 
 def add_casbin_actions(db: Session, casbinactions):
