@@ -152,9 +152,12 @@ def get_users_count(db: Session):
     return db.query(User).count()
 
 
-def delete_user_by_id(db: Session, user_id):
+def delete_user_by_id(db: Session, user_id: int):
     try:
         user = db.query(User).filter_by(id=user_id).first()
+        crs = get_casbin_rules_by_username(db,user.username)
+        for cr in crs:
+            db.delete(cr)
         db.delete(user)
         db.commit()
         return True
@@ -162,7 +165,7 @@ def delete_user_by_id(db: Session, user_id):
         return False
 
 
-def change_user_role(db: Session, user_id, role_key):
+def change_user_role(db: Session, user_id: int, role_keys: list[str]):
     """
     改变用户所属的用户组
     :param db:
@@ -170,11 +173,20 @@ def change_user_role(db: Session, user_id, role_key):
     :param role_key:
     :return:
     """
+
     user = db.query(User).filter_by(id=user_id).first()
     crs = db.query(CasbinRule).filter_by(ptype='g', v0=user.username).all()
-    delete_p_casbin_rules(db, crs)  # 删除所有role
-    crs = [CasbinRule(ptype='g', v0=user.username, v1=role_key), ]
-    create_casbin_rules(db, crs)
+    if len(crs) > 0:
+        delete_p_casbin_rules(db, crs)  # 删除该用胡所拥有的用户组role
+    new_crs = []
+    for role_key in role_keys:
+        new_crs.append(CasbinRule(ptype='g', v0=user.username, v1=role_key))
+    # print(new_crs)
+    try:
+        create_casbin_rules(db, new_crs)
+        return True
+    except:
+        return False
 
 
 # Role
@@ -202,6 +214,14 @@ def get_role_by_id(db: Session, role_id: int):
     return role
     """
     return db.query(Role).filter_by(id=role_id).first()
+
+
+def get_role_by_name(db: Session, name: str):
+    return db.query(Role).filter_by(name=name).first()
+
+
+def get_role_by_role_key(db: Session, role_key: str):
+    return db.query(Role).filter_by(role_key=role_key).first()
 
 
 def update_role_by_id(db: Session, old_role_id, new_role):
@@ -261,7 +281,7 @@ def delete_role_by_id(db: Session, role_id):
         return False
 
 
-def change_role_casbinrules(db: Session, role_key: str, crs:list[CasbinRule]):
+def change_role_casbinrules(db: Session, role_key: str, crs: list[CasbinRule]):
     """
     修改role角色所拥有的权限，先删除role在casbinrule里原有的所有数据，然后添加前端发来的所有新数据。
     crs是一个list,包括一组需要添加到casbinrule的规则。
@@ -276,7 +296,6 @@ def change_role_casbinrules(db: Session, role_key: str, crs:list[CasbinRule]):
         return True
     except:
         return False
-
 
 
 # CasbinAction 动作
@@ -488,7 +507,7 @@ def filter_casbin_rule(db: Session, casbinrule):
     return {*}
     '''
     return db.query(CasbinRule).filter_by(ptype=casbinrule.ptype, v0=casbinrule.v0, v1=casbinrule.v1,
-                                          v2=casbinrule.v2).all()
+                                          v2=casbinrule.v2).first()
 
 
 def create_casbin_rules(db: Session, crs):

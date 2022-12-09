@@ -119,7 +119,14 @@ def get_username_by_token(token):
     :param token:
     :return:
     """
-    print(token)
-    payload = jwt.decode(token, APP_TOKEN_CONFIG.SECRET_KEY, algorithms=[APP_TOKEN_CONFIG.ALGORITHM])
-    username: str = payload.get("sub")  # 从 token中获取用户名
-    return username
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, APP_TOKEN_CONFIG.SECRET_KEY, algorithms=[APP_TOKEN_CONFIG.ALGORITHM])
+        username: str = payload.get("sub")  # 从 token中获取用户名
+        return username
+    except JWTError:
+        raise credentials_exception

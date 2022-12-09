@@ -105,3 +105,8 @@ class EditCasbinAction(BaseModel):
 class ChangeRole(BaseModel):
     role_id: int
     checkeds: list
+
+
+class ChangeUserRole(BaseModel):
+    user_id:int
+    names:list[str]

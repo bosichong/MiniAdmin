@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:10:09
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-09 13:24:20
+ * @LastEditTime: 2022-12-09 20:38:54
  * @FilePath: /MiniAdmin/front/src/components/admin/Role.vue
 -->
 <template lang="">
@@ -116,7 +116,7 @@ const showChangeRole = (role_id) => {
 const changeonClose = () => {
   changevisible.value = false;
 }
-
+// 修改用户组权限
 const changerole = () => {
   // console.log(checkeds.value);
   // console.log(change_role_id.value);

@@ -136,7 +136,7 @@ async def delete_user(token: str = Depends(oauth2_scheme), db: Session = Depends
 
 
 @router.post('/user/update_user')
-async def update_user(user: schemas.UserUpdate, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), ):
+async def update_user(user: schemas.UserUpdate, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     u = crud.get_user_by_id(db, user.user_id)
     u.username = user.username
     u.email = user.email
@@ -151,6 +151,33 @@ async def update_user(user: schemas.UserUpdate, token: str = Depends(oauth2_sche
         return True
     except:
         return False
+
+
+@router.post('/user/change_user_role')
+async def change_user_role(data: schemas.ChangeUserRole, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    # 将用户组名称改成role_key
+    role_keys = []
+    for name in data.names:
+        role = crud.get_role_by_name(db, name)
+        role_keys.append(role.role_key)
+    return crud.change_user_role(db, data.user_id, role_keys)
+
+
+@router.get('/user/get_user_role')
+async def get_user_role(user_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    user = crud.get_user_by_id(db, user_id)
+    roles = crud.get_roles(db)
+    options = []  # 所有的权限组名称
+    for role in roles:
+        options.append(role.name)
+
+    checkeds = []  # 当前用户所拥有的用户组
+    crs = crud.get_casbin_rules_by_username(db, user.username)
+    for cr in crs:
+        role = crud.get_role_by_role_key(db, cr.v1)
+        checkeds.append(role.name)
+
+    return {'options': options, 'checkeds': checkeds}
 
 
 ######################################
@@ -216,7 +243,7 @@ async def get_co_ca(role_id: int, token: str = Depends(oauth2_scheme), db: Sessi
     # ['用户管理', '增', '用户管理', '删', '用户管理', '改', '角色管理', '增', '角色管理', '删', '角色管理', '改']
 
     """
-    # 大佬提供的算法，稍后测试
+    # 群里大佬提供的算法。
     input = ['用户管理', '增', '用户管理', '删', '用户管理', '改', '用户管理', '查', '用户管理', '显', '角色管理', '增', '角色管理', '删', '角色管理', '改', '角色管理', '查', '角色管理', '显', '资源管理', '增', '资源管理', '删', '资源管理', '改', '资源管理', '查', '资源管理', '显', '动作管理', '增', '动作管理', '删', '动作管理', '改', '动作管理', '查', '动作管理', '显', '资源分类', '增', '资源分类', '删', '资源分类', '改', '资源分类', '查', '资源分类', '显']
     
     m = dict()

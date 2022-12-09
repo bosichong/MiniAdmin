@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:11:04
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-08 19:59:05
+ * @LastEditTime: 2022-12-09 23:41:23
  * @FilePath: /MiniAdmin/front/src/components/admin/CasbinAction.vue
 -->
 <template lang="">
@@ -51,7 +51,7 @@
           <a-form-item label="资源名称" name="name">
             <a-input v-model:value="editcaform.name" placeholder="Please enter name" />
           </a-form-item>
-          <a-form-item label="object_" name="action_key">
+          <a-form-item label="action_key" name="action_key">
             <a-input v-model:value="editcaform.action_key" placeholder="Please enter action_key" />
           </a-form-item>
           <a-form-item label="简介" name="description">

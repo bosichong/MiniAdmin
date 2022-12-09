@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:06:33
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-08 19:57:30
+ * @LastEditTime: 2022-12-09 22:10:03
  * @FilePath: /MiniAdmin/front/src/components/admin/User.vue
 -->
 <template>
@@ -21,15 +21,28 @@
         <span v-else>男</span>
       </template>
       <template v-else-if="column.key === 'is_active'">
-        <a-switch v-model:checked="record.is_active" @click="active_change(record.id)" checked-children="开" un-checked-children="关"/>
+        <a-switch v-model:checked="record.is_active" @click="active_change(record.id)" checked-children="开"
+          un-checked-children="关" />
       </template>
       <template v-else-if="column.key === 'action'">
         <span>
           <a-button type="primary" size="small" @click="showDrawer(record.id)">
-            <template #icon><EditFilled /></template></a-button>
+            <template #icon>
+              <EditFilled />
+            </template>
+          </a-button>
           <a-divider type="vertical" />
           <a-button type="primary" size="small" @click="showDeleteConfirm(record.id)">
-            <template #icon><DeleteFilled /></template></a-button>
+            <template #icon>
+              <DeleteFilled />
+            </template>
+          </a-button>
+          <a-divider type="vertical" />
+          <a-button type="primary" size="small" @click="changeGroup(record.id)">
+            <template #icon>
+              <usergroup-add-outlined />
+            </template>
+          </a-button>
         </span>
       </template>
     </template>
@@ -71,11 +84,25 @@
     </a-form>
   </a-drawer>
 
+
+  <a-drawer title="修改用户组" width="550" v-model:visible="changeGroupvisible">
+    <template #extra>
+        <a-button @click="changeGroupClose">取消</a-button>
+        <a-button type="primary" @click="changeusergroup">提交</a-button>
+    </template>
+
+
+
+        <a-checkbox-group v-model:value="checkeds.value" :options="options.value" />
+
+        
+  </a-drawer>
+
 </template>
 <script setup>
-import { ref, reactive, toRaw ,createVNode} from 'vue';
+import { ref, reactive, toRaw, createVNode } from 'vue';
 import axios from 'axios'
-import { ExclamationCircleOutlined, LockOutlined, UserOutlined,EditFilled,DeleteFilled, } from '@ant-design/icons-vue';
+import {UsergroupAddOutlined, ExclamationCircleOutlined, LockOutlined, UserOutlined, EditFilled, DeleteFilled, } from '@ant-design/icons-vue';
 
 import { Modal } from 'ant-design-vue';
 
@@ -101,7 +128,61 @@ const onSearch = searchValue => {
   openPage()
 
 };
+// ##########################
+const options = reactive([]) // 渲染所有权限的多选框
+const checkeds = reactive([]) // 选中已经选择的
+const changeGroupvisible = ref(false)
+const cuser_id = ref(0)// 准备修改用户组的id
+const changeGroupClose = () => {
+  changeGroupvisible.value = false;
+}
+// 打开修改用户组的抽屉
+const changeGroup = (user_id) => {
+  axios.get('/v1/user/get_user_role',{
+    params: {
+      user_id:user_id
+    }
+  }).then((response) => {
+    options.value = response.data.options
+    checkeds.value = response.data.checkeds
+    cuser_id.value = user_id
+    changeGroupvisible.value = true
+  })
+  
 
+}
+
+
+// 修改用户组权限
+const changeusergroup = () => {
+  // console.log(checkeds.value);
+  // console.log(change_role_id.value);
+  axios.post('v1/user/change_user_role', {
+    user_id: cuser_id.value,
+    names: checkeds.value
+  }).then((response) => {
+    if (response.data) {
+      let model = Modal.info()
+      model.update({
+        title: '提示!',
+        content: '修改成功!',
+        onOk: () => {
+          changeGroupvisible.value = false
+        }
+      })
+    } else {
+      let modal = Modal.error()
+      modal.update({
+        title: '错误!',
+        content: "修改失败!请检查权限参数",
+      })
+    }
+  })
+}
+
+
+
+// ###########################
 // 编辑资料抽屉
 const visible = ref(false);// 抽屉开关
 const afterVisibleChange = bool => {

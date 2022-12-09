@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:08:35
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-08 19:59:03
+ * @LastEditTime: 2022-12-09 23:40:55
  * @FilePath: /MiniAdmin/front/src/components/admin/CasbinObject.vue
 -->
 <template lang="">
@@ -51,7 +51,7 @@
           <a-form-item label="资源名称" name="name">
             <a-input v-model:value="editcoform.name" placeholder="Please enter name" />
           </a-form-item>
-          <a-form-item label="object_" name="object_key">
+          <a-form-item label="object_key" name="object_key">
             <a-input v-model:value="editcoform.object_key" placeholder="Please enter object_key" />
           </a-form-item>
           <a-form-item label="简介" name="description">
