@@ -63,11 +63,10 @@ def create_test_data(db: Session):
 
     if get_casbin_object_count(db) <= 0:
         cos = [
-            CasbinObject(name='用户管理', object_key='User', description='User表--用户相关权限', user=user, ),
-            CasbinObject(name='角色管理', object_key='Role', description='Role--角色相关权限', user=user, ),
-            CasbinObject(name='资源管理', object_key='CasbinObject', description='CasbinObject--资源相关权限', user=user, ),
-            CasbinObject(name='动作管理', object_key='CasbinAction', description='CasbinAction表--动作相关权限', user=user, ),
-            CasbinObject(name='资源分类', object_key='CasbinCategory', description='CasbinCategory表--资源分类相关权限', user=user, ),
+            CasbinObject(name='用户管理:', object_key='User', description='User表--用户相关权限', user=user, ),
+            CasbinObject(name='角色管理:', object_key='Role', description='Role--角色相关权限', user=user, ),
+            CasbinObject(name='资源管理:', object_key='CasbinObject', description='CasbinObject--资源相关权限', user=user, ),
+            CasbinObject(name='动作管理:', object_key='CasbinAction', description='CasbinAction表--动作相关权限', user=user, ),
         ]
         add_casbin_objects(db, cos)
     if get_casbin_rule_count(db) <= 0:
@@ -245,12 +244,12 @@ def delete_role_by_id(db: Session, role_id):
     """
     role = get_role_by_id(db, role_id)
     if role:
-        # 删除相关的casbin_rule
+        # 删除casbin_rule里的用户组
         crs = _get_casbin_rules_by_ptype_g_v1(db, role.role_key)
         for cr in crs:
             db.delete(cr)
         db.commit()
-
+        # 删除casein_rule里的相关rule
         crs = _get_casbin_rules_by_ptype_p_v0(db, role.role_key)
         for cr in crs:
             db.delete(cr)
@@ -262,33 +261,22 @@ def delete_role_by_id(db: Session, role_id):
         return False
 
 
-def change_role_casbinrules(db: Session, role_key: str, crs):
+def change_role_casbinrules(db: Session, role_key: str, crs:list[CasbinRule]):
     """
     修改role角色所拥有的权限，先删除role在casbinrule里原有的所有数据，然后添加前端发来的所有新数据。
+    crs是一个list,包括一组需要添加到casbinrule的规则。
     :param db:
     :param role_key:
     :param crs:
-    :return:
+    :return: bool
     """
-    delete_casbin_rules(db, role_key)
-    create_casbin_rules(db, crs)
+    try:
+        delete_casbin_rules(db, role_key)
+        create_casbin_rules(db, crs)
+        return True
+    except:
+        return False
 
-
-def delete_casbin_rules(db, role_key):
-    """
-    批量删除casbinrules，成功返回条数，若返回0则表示没有存在的数据。
-    :param db:
-    :param role_key:
-    :return:
-    """
-    crs = _get_casbin_rules_by_ptype_p_v0(db, role_key)
-    if len(crs) > 0:
-        for cr in crs:
-            db.delete(cr)
-        db.commit()
-        return len(crs)
-    else:
-        return 0
 
 
 # CasbinAction 动作
@@ -446,6 +434,23 @@ def delete_casbin_object_by_id(db: Session, ac_id: int):
 
 # CasbinRule 权限验证核心
 
+def delete_casbin_rules(db, role_key):
+    """
+    批量删除casbinrules，成功返回条数，若返回0则表示没有存在的数据。
+    :param db:
+    :param role_key:
+    :return:
+    """
+    crs = _get_casbin_rules_by_ptype_p_v0(db, role_key)
+    if len(crs) > 0:
+        for cr in crs:
+            db.delete(cr)
+        db.commit()
+        return len(crs)
+    else:
+        return 0
+
+
 def get_casbin_rules_by_obj_key(db: Session, obj_key):
     return db.query(CasbinRule).filter_by(v1=obj_key).all()
 
@@ -488,7 +493,7 @@ def filter_casbin_rule(db: Session, casbinrule):
 
 def create_casbin_rules(db: Session, crs):
     """
-    因为前端添加policy都是多条,所以接口之暴露批量添加.
+    因为前端添加policy都是多条,所以接口只暴露批量添加.
     添加policy到数据表中,如果有相同的policy,则不再继续添加.
     return
     :param db:
@@ -536,7 +541,7 @@ def get_users_by_casbinrule_role_key(db: Session, role_key):
     return crs
 
 
-def get_casbin_rules_by_rolekey(db: Session, role_key):
+def get_casbin_rules_by_role_key(db: Session, role_key):
     '''
     description: 
     return {*} 该权限组所包括的所有权限casbinrule

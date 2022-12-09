@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:06:33
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-07 15:01:06
+ * @LastEditTime: 2022-12-08 19:57:30
  * @FilePath: /MiniAdmin/front/src/components/admin/User.vue
 -->
 <template>
@@ -25,9 +25,11 @@
       </template>
       <template v-else-if="column.key === 'action'">
         <span>
-          <a-button type="primary" size="small" @click="showDrawer(record.id)">编辑</a-button>
+          <a-button type="primary" size="small" @click="showDrawer(record.id)">
+            <template #icon><EditFilled /></template></a-button>
           <a-divider type="vertical" />
-          <a-button type="primary" size="small" @click="showDeleteConfirm(record.id)">删除</a-button>
+          <a-button type="primary" size="small" @click="showDeleteConfirm(record.id)">
+            <template #icon><DeleteFilled /></template></a-button>
         </span>
       </template>
     </template>
@@ -73,7 +75,7 @@
 <script setup>
 import { ref, reactive, toRaw ,createVNode} from 'vue';
 import axios from 'axios'
-import { ExclamationCircleOutlined, LockOutlined, UserOutlined } from '@ant-design/icons-vue';
+import { ExclamationCircleOutlined, LockOutlined, UserOutlined,EditFilled,DeleteFilled, } from '@ant-design/icons-vue';
 
 import { Modal } from 'ant-design-vue';
 

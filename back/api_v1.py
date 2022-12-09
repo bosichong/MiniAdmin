@@ -28,6 +28,10 @@ router = APIRouter(
 )
 
 
+######################################
+# access_token 系统登陆相关的api接口
+######################################
+
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
     """
     生成token
@@ -90,7 +94,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# ########User相关的crud
+######################################
+# User相关的api接口
+######################################
 @router.get("/user/me", response_model=schemas.User)
 async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """
@@ -147,7 +153,9 @@ async def update_user(user: schemas.UserUpdate, token: str = Depends(oauth2_sche
         return False
 
 
-# #############Role相关的api接口
+######################################
+# role相关的api接口
+######################################
 @router.get('/role/get_roles')
 async def get_roles(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     return crud.get_roles(db)
@@ -182,6 +190,132 @@ async def update_role_by_id(role: schemas.EditRole, token: str = Depends(oauth2_
 async def delete_role_by_id(role_id: int, token: str = Depends(oauth2_scheme),
                             db: Session = Depends(get_db)):
     return crud.delete_role_by_id(db, role_id)
+
+
+@router.get('/role/get_coca')
+async def get_co_ca(role_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """
+    返回用户组role所包含的权限用于前端使用多选框来展示
+    <div  v-for="(item,index) of options.value" >
+        <a-checkbox-group v-model:value="checkeds.value[index]" :options="item" />
+    </div>
+
+    其中options、checkeds是两个数组，前者包括了所有的权限列表，后者只包括当前用户组所拥有的权限。
+    :param role_id: 用户则的id
+    :param token:
+    :param db:
+    :return:
+    """
+    cos = crud.get_casbin_objects(db)
+    cas = crud.get_casbin_actions(db)
+    role = crud.get_role_by_id(db, role_id)
+    all_co_ca = []  # 拼装所有权限的列表
+    co_key_name = {}  # 组装一个字典，里边的资源key对应name
+    ca_key_name = {}  # 组装一个字典，里边的动作key对应name
+    # 一个临时的资源和动作的名称数组，类似下边
+    # ['用户管理', '增', '用户管理', '删', '用户管理', '改', '角色管理', '增', '角色管理', '删', '角色管理', '改']
+
+    """
+    # 大佬提供的算法，稍后测试
+    input = ['用户管理', '增', '用户管理', '删', '用户管理', '改', '用户管理', '查', '用户管理', '显', '角色管理', '增', '角色管理', '删', '角色管理', '改', '角色管理', '查', '角色管理', '显', '资源管理', '增', '资源管理', '删', '资源管理', '改', '资源管理', '查', '资源管理', '显', '动作管理', '增', '动作管理', '删', '动作管理', '改', '动作管理', '查', '动作管理', '显', '资源分类', '增', '资源分类', '删', '资源分类', '改', '资源分类', '查', '资源分类', '显']
+    
+    m = dict()
+    key = ''
+    for i in range (len(input)):
+        if i % 2 == 0:
+           key = input[i]
+        else:
+            if m.get(key) != None: 
+                m[key].append(input[i])
+            else:
+                m[key] = [input[i]]
+    
+    res = []
+    
+    for key in m.keys():
+        item = [key]
+        item = item + m[key]
+        res.append(item)
+    
+    print(res)
+    
+    
+    """
+    cks = []
+    checkeds = []  # 当前用户组所拥有的权限
+    for co in cos:
+        coca = [co.name]
+        for ca in cas:
+            coca.append(ca.name)
+        all_co_ca.append(coca)
+
+    for co in cos:
+        co_key_name[co.object_key] = co.name
+    for ca in cas:
+        ca_key_name[ca.action_key] = ca.name
+
+    crs = crud.get_casbin_rules_by_role_key(db, role.role_key)
+
+    for cr in crs:
+        cks.append(co_key_name[cr.v1])
+        cks.append(ca_key_name[cr.v2])
+    # print(cks)
+    temp_nams = list()
+    for ck in cks:
+        if len(temp_nams) == 0:
+            temp_nams.append(ck)
+            # print(temp_nams)
+        elif temp_nams[0] == ck:
+            pass
+        elif ck in co_key_name.values() and ck != temp_nams[0]:
+            checkeds.append(temp_nams)
+            temp_nams = [ck]
+        elif ck in ca_key_name.values() and ck not in temp_nams:
+            temp_nams.append(ck)
+            # print(temp_nams)
+    checkeds.append(temp_nams)
+    # print(checkeds)
+    return {'options': all_co_ca, 'checkeds': checkeds}
+
+
+@router.post('/role/change_role')
+async def change_role(cr_data: schemas.ChangeRole, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """
+    修改用户组所拥有的权限
+    :param cr_data:
+    :param token:
+    :param db:
+    :return:
+    """
+    role = crud.get_role_by_id(db, cr_data.role_id)
+    cos = crud.get_casbin_objects(db)
+    cas = crud.get_casbin_actions(db)
+    co_name_key = {}  # 组装一个字典，里边的资源name对应key
+    ca_name_key = {}  # 组装一个字典，里边的动作name对应key
+    change_crs = []  # 准备要更新添加的所有casbinrule。
+
+    for co in cos:
+        co_name_key[co.name] = co.object_key
+    for ca in cas:
+        ca_name_key[ca.name] = ca.action_key
+
+    for crs in cr_data.checkeds:
+        if crs:
+            try:
+                object_key = co_name_key[crs[0]]
+            except:
+                return False
+            cr_name = crs[0]
+            print(len(crs))
+            if len(crs) <= 1:
+                return False
+            for cr in crs:
+                print(cr, cr_name)
+                if cr != cr_name:
+                    # print(role.role_key, object_key, ca_name_key[cr])
+                    change_crs.append(models.CasbinRule(ptype='p', v0=role.role_key, v1=object_key, v2=ca_name_key[cr]))
+
+    return crud.change_role_casbinrules(db, role.role_key, change_crs)
 
 
 ######################################

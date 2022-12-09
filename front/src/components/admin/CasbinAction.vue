@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:11:04
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-08 18:51:24
+ * @LastEditTime: 2022-12-08 19:59:05
  * @FilePath: /MiniAdmin/front/src/components/admin/CasbinAction.vue
 -->
 <template lang="">
@@ -17,9 +17,10 @@
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
           <span>
-            <a-button type="primary" size="small" @click="editshowDrawer(record.id)">编辑</a-button>
+            <a-button type="primary" size="small" @click="editshowDrawer(record.id)">
+                <template #icon><EditFilled /></template></a-button>
             <a-divider type="vertical" />
-            <a-button type="primary" size="small" @click="deleteca(record.id)">删除</a-button>
+            <a-button type="primary" size="small" @click="deleteca(record.id)"><template #icon><DeleteFilled /></template></a-button>
           </span>
         </template>
       </template>
@@ -64,7 +65,7 @@
   </a-drawer>
 </template>
 <script setup>
-import { PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { PlusOutlined, ExclamationCircleOutlined,EditFilled,DeleteFilled, } from '@ant-design/icons-vue';
 import { reactive, ref, computed, createVNode } from 'vue';
 import axios from 'axios'
 import { Modal } from 'ant-design-vue';

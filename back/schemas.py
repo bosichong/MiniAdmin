@@ -89,8 +89,8 @@ class EditCasbinObject(BaseModel):
 
 
 class createCasbinAction(BaseModel):
-    name:str
-    action_key:str
+    name: str
+    action_key: str
     description: str
     user_id: int
 
@@ -100,3 +100,8 @@ class EditCasbinAction(BaseModel):
     name: str
     action_key: str
     description: str
+
+
+class ChangeRole(BaseModel):
+    role_id: int
+    checkeds: list

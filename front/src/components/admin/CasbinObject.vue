@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:08:35
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-08 18:08:45
+ * @LastEditTime: 2022-12-08 19:59:03
  * @FilePath: /MiniAdmin/front/src/components/admin/CasbinObject.vue
 -->
 <template lang="">
@@ -17,9 +17,10 @@
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
           <span>
-            <a-button type="primary" size="small" @click="editshowDrawer(record.id)">编辑</a-button>
+            <a-button type="primary" size="small" @click="editshowDrawer(record.id)">
+                <template #icon><EditFilled /></template></a-button>
             <a-divider type="vertical" />
-            <a-button type="primary" size="small" @click="deleteRole(record.id)">删除</a-button>
+            <a-button type="primary" size="small" @click="deleteRole(record.id)"><template #icon><DeleteFilled /></template></a-button>
           </span>
         </template>
       </template>
@@ -64,7 +65,7 @@
   </a-drawer>
 </template>
 <script setup>
-import { PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { PlusOutlined, ExclamationCircleOutlined, EditFilled, DeleteFilled, } from '@ant-design/icons-vue';
 import { reactive, ref, computed, createVNode } from 'vue';
 import axios from 'axios'
 import { Modal } from 'ant-design-vue';
@@ -130,39 +131,39 @@ const editRole = () => {
     })
 }
 
-const deleteRole = (co_id) =>{
+const deleteRole = (co_id) => {
     Modal.confirm({
-    title: '确定要删除吗?',
-    icon: createVNode(ExclamationCircleOutlined),
-    content: '确定后会删除此资源及其相关的权限!',
-    okText: '确定',
-    okType: 'danger',
-    cancelText: '取消',
-    onOk() {
-      axios.get('v1/co/delete_co', {
-        params: { co_id : co_id},
-      }).then(function (response) {
-        if (response.data) {
-          openPage()
-          let model = Modal.info()
-          model.update({
-            title: '提示!',
-            content: '删除成功!'
-          })
-        }
-      }).catch(function (error) {
-        let model = Modal.error()
-        model.update({
-          title: '提示!',
-          content: '删除失败!'
-        })
+        title: '确定要删除吗?',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: '确定后会删除此资源及其相关的权限!',
+        okText: '确定',
+        okType: 'danger',
+        cancelText: '取消',
+        onOk() {
+            axios.get('v1/co/delete_co', {
+                params: { co_id: co_id },
+            }).then(function (response) {
+                if (response.data) {
+                    openPage()
+                    let model = Modal.info()
+                    model.update({
+                        title: '提示!',
+                        content: '删除成功!'
+                    })
+                }
+            }).catch(function (error) {
+                let model = Modal.error()
+                model.update({
+                    title: '提示!',
+                    content: '删除失败!'
+                })
 
-      })
-    },
-    onCancel() {
-      console.log('Cancel');
-    },
-  });
+            })
+        },
+        onCancel() {
+            console.log('Cancel');
+        },
+    });
 }
 
 
