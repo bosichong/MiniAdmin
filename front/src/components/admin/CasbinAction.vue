@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:11:04
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-09 23:41:23
+ * @LastEditTime: 2022-12-09 23:50:15
  * @FilePath: /MiniAdmin/front/src/components/admin/CasbinAction.vue
 -->
 <template lang="">

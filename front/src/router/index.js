@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:42:59
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-08 09:15:30
+ * @LastEditTime: 2022-12-10 08:32:13
  * @FilePath: /MiniAdmin/front/src/router/index.js
  */
 import { createRouter, createWebHistory } from 'vue-router'
@@ -17,6 +17,14 @@ const routes = [
     {
         path: '/',
         redirect: '/admin'
+    },
+    {
+        path: '/register',
+        name: 'Register',
+        component: () => import('../components/Register.vue'),
+        meta: {
+            title: 'Register'
+        }
     },
     {
         path: '/login',
@@ -128,18 +136,27 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach((to, from) => {
+const whiteList = ['Home', 'Login', 'Register','error404','error403','error500'] // 白名单
+
+
+
+router.beforeEach((to, from, next) => {
     // 判断用户是否登陆和锁定,后端判断锁定用户是不能登陆的,不会得到token
     let isLogin = sessionStorage.getItem('token')
-    if (
-        // 检查用户是否已登录
-        !isLogin &&
-        // ❗️ 避免无限重定向
-        to.name !== 'Login'
-    ) {
-        // 将用户重定向到登录页面
-        return { name: 'Login' }
+    if (whiteList.includes(to.name)) {
+        next()//如果在白名单 直接进入
+    } else {
+        if (
+            // 检查用户是否已登录
+            !isLogin &&
+            // ❗️ 避免无限重定向
+            to.name !== 'Login'
+        ) {
+            // 将用户重定向到登录页面
+            next({ name: 'Login' }) 
+        }else next()
     }
+
 })
 
 
