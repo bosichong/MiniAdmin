@@ -16,10 +16,10 @@ from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
 import crud, schemas, models
-from database import get_db
+from database import get_db, get_casbin_e
 from schemas import Token, TokenData
-from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, verify_token_wrapper, get_username_by_token, get_password_hash
-from config import logger
+from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, verify_token_wrapper, \
+    get_username_by_token, get_password_hash, logger
 
 router = APIRouter(
     prefix="/v1",
@@ -411,6 +411,19 @@ async def update_ca(ca: schemas.EditCasbinAction, token: str = Depends(oauth2_sc
 @router.get('/ca/delete_ca')
 async def delete_ca(ca_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     return crud.delete_casbin_action_by_id(db, ca_id)
+
+
+######################################
+# Casbin 权限验证的api接口
+######################################
+
+@router.post('/isAuthenticated')
+async def isAuthenticated(rule: schemas.Casbin_rule, token: str = Depends(oauth2_scheme),):
+    e = get_casbin_e()
+    if e.enforce(rule.sub, rule.obj, rule.act):
+        return True
+    else:
+        return False
 
 
 @router.get("")

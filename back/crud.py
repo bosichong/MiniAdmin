@@ -15,7 +15,7 @@ python交流学习群号:217840699
 from sqlalchemy.orm import Session
 from models import User, CasbinAction, CasbinObject, Role, CasbinRule
 from utils import verify_password, get_password_hash
-from config import logger
+from utils import logger
 
 import random
 

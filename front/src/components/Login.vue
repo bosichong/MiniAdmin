@@ -2,12 +2,13 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-12-01 09:10:43
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-07 09:07:30
+ * @LastEditTime: 2022-12-10 21:58:37
  * @FilePath: /MiniAdmin/front/src/components/Login.vue
 -->
 <template>
     <div class="minilogin">
 
+        <a-typography-title :level="3">Mini Admin</a-typography-title>
         <a-form :model="formState" name="normal_login" class="login-form" @finish="onFinish"
             @finishFailed="onFinishFailed">
             <a-form-item label="Username" name="username"
@@ -28,19 +29,13 @@
                 </a-input-password>
             </a-form-item>
 
-            <a-form-item>
-                <a-form-item name="remember" no-style>
-                    <a-checkbox v-model:checked="formState.remember">Remember me</a-checkbox>
-                </a-form-item>
-                <a class="login-form-forgot" href="">Forgot password</a>
-            </a-form-item>
 
             <a-form-item>
                 <a-button :disabled="disabled" type="primary" html-type="submit" class="login-form-button">
                     Log in
                 </a-button>
                 Or
-                <a href="">register now!</a>
+                <router-link to="/register">register now!</router-link>
             </a-form-item>
         </a-form>
     </div>
@@ -83,7 +78,6 @@ const onFinish = (values) => {
                     router.push('/admin/main')
 
                 }))
-    router.push('/')
 }
 
     }).catch (function (error) {
@@ -118,6 +112,7 @@ const disabled = computed(() => {
 }
 
 .minilogin {
+    text-align: center;
     position: fixed;
     width: 350px;
     height: 200px;

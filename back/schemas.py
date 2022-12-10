@@ -108,5 +108,11 @@ class ChangeRole(BaseModel):
 
 
 class ChangeUserRole(BaseModel):
-    user_id:int
-    names:list[str]
+    user_id: int
+    names: list[str]
+
+
+class Casbin_rule(BaseModel):
+    sub: str
+    obj: str
+    act: str

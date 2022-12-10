@@ -11,20 +11,21 @@ python交流学习群号:217840699
 import os
 import pytest
 import casbin
-from config import BASE_DIR
 from casbin_sqlalchemy_adapter import Adapter
 from database import get_db_to_T_E_S_T, engine_test, Base
 import crud
 from models import User, CasbinAction, CasbinObject, Role, CasbinRule
-from utils import get_password_hash, verify_password, verify_casbin_decorator, verify_e
+from utils import get_password_hash, verify_password, verify_casbin_decorator,\
+    verify_e,BASE_DIR
 
 
 class TestDatabase:
 
     def setup_class(self):
-        self.adapter = Adapter(engine_test)
+
         Base.metadata.create_all(engine_test)
         self.db = next(get_db_to_T_E_S_T())
+        self.adapter = Adapter(engine_test)
         self.model_path = os.path.join(BASE_DIR, 'rbac_model.conf')
 
         # 创建用户

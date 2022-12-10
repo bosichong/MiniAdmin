@@ -8,16 +8,23 @@ FilePath: /MiniAdmin/back/utils.py
 python交流学习群号:217840699
 '''
 
+import os
+import sys
 from functools import wraps
 
 from passlib.context import CryptContext
 from pydantic import BaseSettings
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
-
 from schemas import TokenData
-
 from fastapi.security import OAuth2PasswordBearer
+from loguru import logger
+from database import BASE_DIR, get_casbin_e
+
+LOG_LEVEL = "DEBUG"
+logger.remove()  # 删去import logger之后自动产生的handler，不删除的话会出现重复输出的现象
+logger.add(os.path.join(BASE_DIR, "logs/logger.log"), level=LOG_LEVEL)
+handler_id = logger.add(sys.stderr, level=LOG_LEVEL)
 
 # 执行生成token的地址
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/token")
@@ -57,7 +64,7 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def verify_casbin_decorator(e, sub, obj, act):
+def verify_casbin_decorator():
     """
     casein 的rbac 权限校验装饰器
     e : casbin的 enforce 验证方法
@@ -68,12 +75,22 @@ def verify_casbin_decorator(e, sub, obj, act):
     """
 
     def decorator(fun):
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="请先登陆后尝试",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        e = get_casbin_e()
+
         @wraps(fun)
         def wrapper(*args, **kwargs):
+            sub = get_username_by_token(kwargs["token"])
+            obj = kwargs["rule"].obj
+            act = kwargs["rule"].act
             if e.enforce(sub, obj, act):
                 return fun(*args, **kwargs)
             else:
-                return 433
+                raise credentials_exception
 
         return wrapper
 

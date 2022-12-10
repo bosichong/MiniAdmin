@@ -2,10 +2,11 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:42:59
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-10 08:32:13
+ * @LastEditTime: 2022-12-10 21:59:10
  * @FilePath: /MiniAdmin/front/src/router/index.js
  */
 import { createRouter, createWebHistory } from 'vue-router'
+import axios from 'axios'
 
 
 
@@ -41,7 +42,7 @@ const routes = [
         meta: {
             title: '管理首页',
             icon: 'Admin',
-            permission: ['Admin', 'show']
+            rule: ['User', 'show']
         },
         children: [
             {
@@ -51,7 +52,7 @@ const routes = [
                 meta: {
                     title: '后台管理首页',
                     icon: 'admin',
-                    permission: ['Admin', 'show']
+                    rule: ['User', 'show']
                 }
             },
             {
@@ -61,7 +62,7 @@ const routes = [
                 meta: {
                     title: '关于',
                     icon: 'about',
-                    permission: ['About', 'show']
+                    rule: ['About', 'show']
                 }
             },
             {
@@ -71,7 +72,7 @@ const routes = [
                 meta: {
                     title: '用户管理',
                     icon: 'user',
-                    permission: ['User', 'show']
+                    rule: ['User', 'show']
                 }
             },
             {
@@ -81,7 +82,7 @@ const routes = [
                 meta: {
                     title: '角色管理',
                     icon: 'role',
-                    permission: ['Role', 'show']
+                    rule: ['Role', 'show']
                 }
             },
             {
@@ -91,7 +92,7 @@ const routes = [
                 meta: {
                     title: '资源管理',
                     icon: 'object',
-                    permission: ['CasbinObject', 'show']
+                    rule: ['CasbinObject', 'show']
                 }
             },
             {
@@ -101,7 +102,7 @@ const routes = [
                 meta: {
                     title: '动作管理',
                     icon: 'object',
-                    permission: ['CasbinAction', 'show']
+                    rule: ['CasbinAction', 'show']
                 }
             },
 
@@ -123,7 +124,17 @@ const routes = [
         path: '/500',
         name: 'error500',
         component: () => import('../components/error-page/500.vue')
-    }
+    },
+    {
+        path: '/test',
+        name: 'Test',
+        component: () => import('../components/Test.vue'),
+        meta: {
+            title: 'Test',
+            icon: 'test',
+            rule: ['User', 'show']
+        }
+    },
 ]
 
 
@@ -136,7 +147,7 @@ const router = createRouter({
     routes,
 });
 
-const whiteList = ['Home', 'Login', 'Register','error404','error403','error500'] // 白名单
+const whiteList = ['Home', 'Login', 'Register', 'error404', 'error403', 'error500'] // 白名单
 
 
 
@@ -153,8 +164,29 @@ router.beforeEach((to, from, next) => {
             to.name !== 'Login'
         ) {
             // 将用户重定向到登录页面
-            next({ name: 'Login' }) 
-        }else next()
+            next({ name: 'Login' })
+        } else {
+            if (to.meta.rule) {
+                // console.log(to.meta.rule);
+                axios.post('/v1/isAuthenticated', {
+                        sub: sessionStorage.getItem('username'),
+                        obj: to.meta.rule[0],
+                        act: to.meta.rule[1]
+                }).then(function (response) {
+                    // console.log(response.data);
+                    if (response.data){
+                        next()
+                    }else{
+                        next({name:'error403'})
+                    }
+                })
+                
+
+            } else {
+                next()
+            }
+
+        }
     }
 
 })
