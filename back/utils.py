@@ -64,66 +64,17 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def verify_casbin_decorator():
+def verify_casbin_e(token: str, rule):
     """
-    casein 的rbac 权限校验装饰器
-    e : casbin的 enforce 验证方法
-    sub : 想要访问资源的用户组
-    obj : 将要被访问的资源
-    act : 用户对资源进行的操作
-    return {*} 校验权限的结果:通过执行包装的函数,否则返回433
+    casbin权限验证
+    :param token:token
+    :param rule: object ，action
+    :return:
     """
-
-    def decorator(fun):
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="请先登陆后尝试",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-        e = get_casbin_e()
-
-        @wraps(fun)
-        def wrapper(*args, **kwargs):
-            sub = get_username_by_token(kwargs["token"])
-            obj = kwargs["rule"].obj
-            act = kwargs["rule"].act
-            if e.enforce(sub, obj, act):
-                return fun(*args, **kwargs)
-            else:
-                raise credentials_exception
-
-        return wrapper
-
-    return decorator
-
-
-def verify_token_wrapper():
-    """定义一个token验证的装饰器"""
-
-    def decorator(func):
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="请先登陆后尝试",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            try:  # 从token中解码出用户名，
-                username = get_username_by_token(kwargs["token"])
-                if username is None:
-                    return False
-                token_data = TokenData(username=username)
-                if token_data.username:
-                    return func(*args, **kwargs)  # 要执行的函数
-                else:
-                    raise credentials_exception
-            except JWTError:
-                raise credentials_exception
-
-        return wrapper
-
-    return decorator
+    e = get_casbin_e() # 每次都要调用，获取最新的权限规则。
+    sub = get_username_by_token(token)  # token中获取用户名
+    # print(sub,rule.obj,rule.act)
+    return e.enforce(sub, rule.obj, rule.act)
 
 
 def verify_e(e, sub, obj, act):
@@ -142,6 +93,7 @@ def get_username_by_token(token):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        # print('获取用户名'+token)
         payload = jwt.decode(token, APP_TOKEN_CONFIG.SECRET_KEY, algorithms=[APP_TOKEN_CONFIG.ALGORITHM])
         username: str = payload.get("sub")  # 从 token中获取用户名
         return username

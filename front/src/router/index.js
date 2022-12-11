@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:42:59
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-10 21:59:10
+ * @LastEditTime: 2022-12-11 09:16:09
  * @FilePath: /MiniAdmin/front/src/router/index.js
  */
 import { createRouter, createWebHistory } from 'vue-router'
@@ -169,9 +169,13 @@ router.beforeEach((to, from, next) => {
             if (to.meta.rule) {
                 // console.log(to.meta.rule);
                 axios.post('/v1/isAuthenticated', {
-                        sub: sessionStorage.getItem('username'),
                         obj: to.meta.rule[0],
                         act: to.meta.rule[1]
+                },{
+                    headers:{
+                        "accept": "application / json",
+                        "Authorization": "Bearer " + sessionStorage.getItem('token')
+                    },
                 }).then(function (response) {
                     // console.log(response.data);
                     if (response.data){

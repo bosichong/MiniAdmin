@@ -10,7 +10,7 @@ v1
 from datetime import datetime, timedelta
 from typing import Union
 
-from fastapi import APIRouter, Depends, HTTPException, status, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Form, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -18,8 +18,7 @@ from jose import JWTError, jwt
 import crud, schemas, models
 from database import get_db, get_casbin_e
 from schemas import Token, TokenData
-from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, verify_token_wrapper, \
-    get_username_by_token, get_password_hash, logger
+from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, get_username_by_token, get_password_hash, verify_casbin_e, logger
 
 router = APIRouter(
     prefix="/v1",
@@ -333,11 +332,11 @@ async def change_role(cr_data: schemas.ChangeRole, token: str = Depends(oauth2_s
             except:
                 return False
             cr_name = crs[0]
-            print(len(crs))
+            # print(len(crs))
             if len(crs) <= 1:
                 return False
             for cr in crs:
-                print(cr, cr_name)
+                # print(cr, cr_name)
                 if cr != cr_name:
                     # print(role.role_key, object_key, ca_name_key[cr])
                     change_crs.append(models.CasbinRule(ptype='p', v0=role.role_key, v1=object_key, v2=ca_name_key[cr]))
@@ -417,15 +416,48 @@ async def delete_ca(ca_id: int, token: str = Depends(oauth2_scheme), db: Session
 # Casbin 权限验证的api接口
 ######################################
 
+@router.get('/get_menu')
+async def get_menu_permissions(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    rules = [
+        ['User', 'show'],
+        ['Role', 'show'],
+        ['CasbinObject', 'show'],
+        ['CasbinAction', 'show'],
+    ]
+    menu = {}
+    for r in rules:
+        if verify_casbin_e(token, schemas.Casbin_rule(obj=r[0], act=r[1])):
+            menu[r[0]] = True
+        else:
+            menu[r[0]] = False
+    # print(menu)
+    return menu
+
+
 @router.post('/isAuthenticated')
-async def isAuthenticated(rule: schemas.Casbin_rule, token: str = Depends(oauth2_scheme),):
-    e = get_casbin_e()
-    if e.enforce(rule.sub, rule.obj, rule.act):
+async def isAuthenticated(rule: schemas.Casbin_rule, token: str = Depends(oauth2_scheme), ):
+    """
+    路由页面的权限验证接口
+    :param rule:
+    :param token:
+    :return:
+    """
+    # print("路由权限验证")
+    if verify_casbin_e(token, rule):
         return True
     else:
         return False
 
 
-@router.get("")
-async def test():
-    return 'Hello MiniAdmin v1'
+@router.post("/casbin_rule_test")
+async def casbin_test(token: str = Depends(oauth2_scheme)):
+    """
+    一个关于权限接口的简单测试
+    :param token:
+    :return:
+    """
+    rule = schemas.Casbin_rule(obj='User', act='read')
+    if verify_casbin_e(token, rule):
+        return True
+    else:
+        return False

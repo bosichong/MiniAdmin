@@ -23,7 +23,7 @@ from api_v1 import router
 import crud
 
 __version__ = "0.0.1"
-description = '''MiniAdmin,一个简洁轻快的后台管理框架. 🚀'''
+description = '''Mini Admin,一个简洁轻快的后台管理框架. 🚀'''
 
 app = FastAPI(
     title="MiniAdmin",

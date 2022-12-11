@@ -113,6 +113,6 @@ class ChangeUserRole(BaseModel):
 
 
 class Casbin_rule(BaseModel):
-    sub: str
     obj: str
     act: str
+

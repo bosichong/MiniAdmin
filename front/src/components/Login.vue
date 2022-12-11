@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-12-01 09:10:43
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-10 21:58:37
+ * @LastEditTime: 2022-12-11 09:09:29
  * @FilePath: /MiniAdmin/front/src/components/Login.vue
 -->
 <template>
@@ -76,6 +76,7 @@ const onFinish = (values) => {
                     sessionStorage.setItem("email", response.data.email)
                     sessionStorage.setItem("sex", response.data.sex)
                     router.push('/admin/main')
+                    
 
                 }))
 }
@@ -111,7 +112,7 @@ const disabled = computed(() => {
     width: 100%;
 }
 
-.minilogin {
+ .minilogin {
     text-align: center;
     position: fixed;
     width: 350px;
