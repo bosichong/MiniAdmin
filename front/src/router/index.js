@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:42:59
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-11 09:16:09
+ * @LastEditTime: 2022-12-12 10:15:03
  * @FilePath: /MiniAdmin/front/src/router/index.js
  */
 import { createRouter, createWebHistory } from 'vue-router'
@@ -183,6 +183,9 @@ router.beforeEach((to, from, next) => {
                     }else{
                         next({name:'error403'})
                     }
+                }).catch(function (err) {
+                    // token超时,将用户重定向到登录页面
+                    next({ name: 'Login' })
                 })
                 
 

@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-12-01 09:10:43
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-11 09:09:29
+ * @LastEditTime: 2022-12-12 10:34:30
  * @FilePath: /MiniAdmin/front/src/components/Login.vue
 -->
 <template>
@@ -56,6 +56,7 @@ const formState = reactive({
 });
 
 const onFinish = (values) => {
+    sessionStorage.clear()
     axios.post('v1/token', {
         username: values.username,
         password: values.password,
@@ -64,33 +65,34 @@ const onFinish = (values) => {
     ).then(function (response) {
         let token = response.data.access_token
         sessionStorage.setItem('token', token)
+        // console.log(token);
+        // console.log(sessionStorage.getItem('username'))
         if (sessionStorage.getItem('username') === null) {
             axios.get("v1/user/me", {
-                headers:{
+                headers: {
                     "accept": "application / json",
                     "Authorization": "Bearer " + sessionStorage.getItem('token')
                 },
             },).then((function (response) {
-                    sessionStorage.setItem("user_id", response.data.id)
-                    sessionStorage.setItem("username", response.data.username)
-                    sessionStorage.setItem("email", response.data.email)
-                    sessionStorage.setItem("sex", response.data.sex)
-                    router.push('/admin/main')
-                    
+                sessionStorage.setItem("user_id", response.data.id)
+                sessionStorage.setItem("username", response.data.username)
+                sessionStorage.setItem("email", response.data.email)
+                sessionStorage.setItem("sex", response.data.sex)
+                router.push('/admin/main')
 
-                }))
-}
+            }))
+        }
 
-    }).catch (function (error) {
-    console.log(error.response.data.detail)
-    let modal = Modal.error()
-    modal.update({
-        title: '错误!',
-        content: error.response.data.detail,
+    }).catch(function (error) {
+        console.log(error.response.data.detail)
+        let modal = Modal.error()
+        modal.update({
+            title: '错误!',
+            content: error.response.data.detail,
+        })
+
     })
-
-})
-return false;
+    return false;
 };
 const onFinishFailed = (errorInfo) => {
     console.log("Failed:", errorInfo);
@@ -112,7 +114,7 @@ const disabled = computed(() => {
     width: 100%;
 }
 
- .minilogin {
+.minilogin {
     text-align: center;
     position: fixed;
     width: 350px;

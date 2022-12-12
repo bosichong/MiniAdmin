@@ -38,7 +38,7 @@ class AppTokenConfig(BaseSettings):
     """
     SECRET_KEY = "ededcbe81f2e015697780d536196c0baa6ea26021ad7070867e40b18a51ff8da"
     ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 15  # token失效时间
+    ACCESS_TOKEN_EXPIRE_MINUTES = 30  # token失效时间
 
 
 # 创建一个token的配置项。

@@ -258,33 +258,59 @@ async def get_roles(token: str = Depends(oauth2_scheme), db: Session = Depends(g
 
 @router.post('/role/create_role')
 async def create_role(role: schemas.Role, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), ):
-    new_role = models.Role()
-    new_role.name = role.name
-    new_role.role_key = role.role_key
-    new_role.description = role.description
-    new_role.user_id = int(role.user_id)
-    return crud.create_role(db, new_role)
+    """
+    创建 role
+    :param role:
+    :param token:
+    :param db:
+    :return:
+    """
+    if verify_enforce(token, return_rule('Role', 'create')):
+        new_role = models.Role()
+        new_role.name = role.name
+        new_role.role_key = role.role_key
+        new_role.description = role.description
+        new_role.user_id = int(role.user_id)
+        return crud.create_role(db, new_role)
+    else:
+        raise no_permission
 
 
 @router.get('/role/get_role_by_id')
 async def get_role_by_id(role_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    return crud.get_role_by_id(db, role_id)
+    if verify_enforce(token, return_rule('Role', 'read')):
+        return crud.get_role_by_id(db, role_id)
+    else:
+        raise no_permission
 
 
 @router.post('/role/update_role')
 async def update_role_by_id(role: schemas.EditRole, token: str = Depends(oauth2_scheme),
                             db: Session = Depends(get_db)):
-    new_role = models.Role()
-    new_role.name = role.name
-    new_role.role_key = role.role_key
-    new_role.description = role.description
-    return crud.update_role_by_id(db, role.old_role_id, new_role)
+    """
+    修改role
+    :param role:
+    :param token:
+    :param db:
+    :return:
+    """
+    if verify_enforce(token, return_rule('Role', 'update')):
+        new_role = models.Role()
+        new_role.name = role.name
+        new_role.role_key = role.role_key
+        new_role.description = role.description
+        return crud.update_role_by_id(db, role.old_role_id, new_role)
+    else:
+        raise no_permission
 
 
 @router.get('/role/delete_role')
 async def delete_role_by_id(role_id: int, token: str = Depends(oauth2_scheme),
                             db: Session = Depends(get_db)):
-    return crud.delete_role_by_id(db, role_id)
+    if verify_enforce(token, return_rule('Role', 'delete')):
+        return crud.delete_role_by_id(db, role_id)
+    else:
+        raise no_permission
 
 
 @router.get('/role/get_coca')
@@ -382,35 +408,38 @@ async def change_role(cr_data: schemas.ChangeRole, token: str = Depends(oauth2_s
     :param db:
     :return:
     """
-    role = crud.get_role_by_id(db, cr_data.role_id)
-    cos = crud.get_casbin_objects(db)
-    cas = crud.get_casbin_actions(db)
-    co_name_key = {}  # 组装一个字典，里边的资源name对应key
-    ca_name_key = {}  # 组装一个字典，里边的动作name对应key
-    change_crs = []  # 准备要更新添加的所有casbinrule。
+    if verify_enforce(token, return_rule('Role', 'update')):
+        role = crud.get_role_by_id(db, cr_data.role_id)
+        cos = crud.get_casbin_objects(db)
+        cas = crud.get_casbin_actions(db)
+        co_name_key = {}  # 组装一个字典，里边的资源name对应key
+        ca_name_key = {}  # 组装一个字典，里边的动作name对应key
+        change_crs = []  # 准备要更新添加的所有casbinrule。
 
-    for co in cos:
-        co_name_key[co.name] = co.object_key
-    for ca in cas:
-        ca_name_key[ca.name] = ca.action_key
+        for co in cos:
+            co_name_key[co.name] = co.object_key
+        for ca in cas:
+            ca_name_key[ca.name] = ca.action_key
 
-    for crs in cr_data.checkeds:
-        if crs:
-            try:
-                object_key = co_name_key[crs[0]]
-            except:
-                return False
-            cr_name = crs[0]
-            # print(len(crs))
-            if len(crs) <= 1:
-                return False
-            for cr in crs:
-                # print(cr, cr_name)
-                if cr != cr_name:
-                    # print(role.role_key, object_key, ca_name_key[cr])
-                    change_crs.append(models.CasbinRule(ptype='p', v0=role.role_key, v1=object_key, v2=ca_name_key[cr]))
+        for crs in cr_data.checkeds:
+            if crs:
+                try:
+                    object_key = co_name_key[crs[0]]
+                except:
+                    return False
+                cr_name = crs[0]
+                # print(len(crs))
+                if len(crs) <= 1:
+                    return False
+                for cr in crs:
+                    # print(cr, cr_name)
+                    if cr != cr_name:
+                        # print(role.role_key, object_key, ca_name_key[cr])
+                        change_crs.append(models.CasbinRule(ptype='p', v0=role.role_key, v1=object_key, v2=ca_name_key[cr]))
 
-    return crud.change_role_casbinrules(db, role.role_key, change_crs)
+        return crud.change_role_casbinrules(db, role.role_key, change_crs)
+    else:
+        raise no_permission
 
 
 ######################################

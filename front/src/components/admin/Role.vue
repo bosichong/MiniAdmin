@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:10:09
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-09 20:38:54
+ * @LastEditTime: 2022-12-12 10:46:21
  * @FilePath: /MiniAdmin/front/src/components/admin/Role.vue
 -->
 <template lang="">
@@ -141,6 +141,12 @@ const changerole = () => {
         content: "修改失败!请检查权限参数",
       })
     }
+  }).catch(function (error) {
+    let modal = Modal.error()
+    modal.update({
+      title: '错误!',
+      content: "修改失败!" + error.response.data.detail,
+    })
   })
 }
 
@@ -169,6 +175,18 @@ const editshowDrawer = (role_id) => {
     editroleform.description = response.data.description
     editroleform.role_id = role_id
     editvisible.value = true
+  }).catch(function (error) {
+    if (error) {
+      let model = Modal.error()
+      model.update({
+        title: '错误!',
+        content: error.response.data.detail,
+        onOk: () => {
+          visible.value = false
+        }
+      })
+
+    }
   })
 
 
@@ -204,10 +222,10 @@ const editRole = () => {
     }
   }).catch(function (error) {
     let modal = Modal.error()
-      modal.update({
-        title: '错误!',
-        content: "修改失败!",
-      })
+    modal.update({
+      title: '错误!',
+      content: "修改失败!" + error.response.data.detail,
+    })
   })
 }
 
@@ -232,10 +250,10 @@ const deleteRole = (role_id) => {
           })
         }
       }).catch(function (error) {
-        let model = Modal.error()
-        model.update({
-          title: '提示!',
-          content: '删除失败!'
+        let modal = Modal.error()
+        modal.update({
+          title: '错误!',
+          content: "修改失败!" + error.response.data.detail,
         })
 
       })
@@ -274,12 +292,14 @@ const showDrawer = () => {
 }
 const onClose = () => {
   visible.value = false;
+  createroleform.name = ''
+  createroleform.role_key = ''
+  createroleform.description = ''
 };
 
 
 // 增加role
 const onRoleFinish = () => {
-  // console.log(createroleform);
   axios.post('/v1/role/create_role', {
     name: createroleform.name,
     role_key: createroleform.role_key,
@@ -306,8 +326,21 @@ const onRoleFinish = () => {
     createroleform.name = ''
     createroleform.role_key = ''
     createroleform.description = ''
-  }).then(function (error) {
+  }).catch(function (error) {
+    if (error) {
+      let model = Modal.error()
+      model.update({
+        title: '错误!',
+        content: error.response.data.detail,
+        onOk: () => {
+          visible.value = false
+          createroleform.name = ''
+          createroleform.role_key = ''
+          createroleform.description = ''
+        }
+      })
 
+    }
   })
 
 };
