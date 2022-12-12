@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:42:59
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-12 10:15:03
+ * @LastEditTime: 2022-12-13 01:08:48
  * @FilePath: /MiniAdmin/front/src/router/index.js
  */
 import { createRouter, createWebHistory } from 'vue-router'
@@ -53,16 +53,6 @@ const routes = [
                     title: '后台管理首页',
                     icon: 'admin',
                     rule: ['User', 'show']
-                }
-            },
-            {
-                path: 'about',
-                name: 'About',
-                component: () => import('../components/About.vue'),
-                meta: {
-                    title: '关于',
-                    icon: 'about',
-                    rule: ['About', 'show']
                 }
             },
             {
@@ -177,8 +167,11 @@ router.beforeEach((to, from, next) => {
                         "Authorization": "Bearer " + sessionStorage.getItem('token')
                     },
                 }).then(function (response) {
-                    // console.log(response.data);
-                    if (response.data){
+                    console.log(response.data);
+                    if (response.data === '锁定'){
+                        sessionStorage.clear()
+                        next({ name: 'Login' })
+                    }else if(response.data){
                         next()
                     }else{
                         next({name:'error403'})

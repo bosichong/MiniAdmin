@@ -20,9 +20,9 @@ from utils import logger
 import random
 
 
-def create_test_data(db: Session):
+def create_data(db: Session):
     """
-    添加测试数据
+    添加超级管理员和一些普通的用户。
     :param db:
     :return:
     """
@@ -31,18 +31,8 @@ def create_test_data(db: Session):
     hashed_password = get_password_hash('123456')
     if not get_user_by_username(db, "miniadmin"):
         add_user(db, User(username='miniadmin', hashed_password=hashed_password, email='admin@example.com', remark='超级管理员，拥有所有权限'))
-        logger.info("创建超级管理员：miniadmin,以及一些模拟数据。")
+        logger.info("创建超级管理员：miniadmin")
     user = get_user_by_username(db, "miniadmin")
-    # 添加一些用户
-    if get_users_count(db) <= 1:
-        for i in range(118):
-            sex = str(random.randint(0, 1))
-            is_active = False
-            if random.randint(0, 1): is_active = True
-            k = str(i)
-            u = User(username='mini' + k, hashed_password=hashed_password, email='admin' + k + '@example.com',
-                     sex=sex, is_active=is_active, remark='临时测试用户')
-            add_user(db, u)
 
     if get_role_count(db) <= 0:
         # 创建角色role
@@ -62,6 +52,7 @@ def create_test_data(db: Session):
         add_casbin_actions(db, cas)
 
     if get_casbin_object_count(db) <= 0:
+        # 创建CasbinObject
         cos = [
             CasbinObject(name='用户管理:', object_key='User', description='User表--用户相关权限', user=user, ),
             CasbinObject(name='角色管理:', object_key='Role', description='Role--角色相关权限', user=user, ),
@@ -69,20 +60,90 @@ def create_test_data(db: Session):
             CasbinObject(name='动作管理:', object_key='CasbinAction', description='CasbinAction表--动作相关权限', user=user, ),
         ]
         add_casbin_objects(db, cos)
-    if get_casbin_rule_count(db) <= 0:
-        # 设置超级管理员
-        role = get_role_by_id(db, 1)  # 超级管理员组
-        cas = get_casbin_actions(db)  # 所有动作
-        cos = get_casbin_objects(db)  # 所有资源
-        crs = []
-        for co in cos:
-            for ca in cas:
-                crs.append(CasbinRule(ptype='p', v0=role.role_key, v1=co.object_key, v2=ca.action_key))
 
-        # 为超级管理员增加所有policy
-        create_casbin_rules(db, crs)
-        # 设置用户miniadmin的角色为超级管理员
-        create_casbin_rule_g(db, CasbinRule(ptype='g', v0=user.username, v1=role.role_key))
+    if get_casbin_rule_count(db) <= 0:
+        logger.info("设置用户组权限")
+        set_user_role(db)
+        logger.info("设置超级管理员")
+        role_superadmin = get_role_by_id(db, 1)  # 超级管理员组
+        create_casbin_rule_g(db, CasbinRule(ptype='g', v0=user.username, v1=role_superadmin.role_key))
+        logger.info("生成一些普通用户。")
+        create_temp_users(db)
+
+
+def set_user_role(db: Session):
+    """
+    设置超级管理员组和普通用户组权限
+    :param db:
+    :return:
+    """
+    role_superadmin = get_role_by_id(db, 1)  # 超级管理员组
+    cas = get_casbin_actions(db)  # 所有动作
+    cos = get_casbin_objects(db)  # 所有资源
+    crs = []
+    for co in cos:
+        for ca in cas:
+            crs.append(CasbinRule(ptype='p', v0=role_superadmin.role_key, v1=co.object_key, v2=ca.action_key))
+    # 为超级管理员增加所有policy
+    create_casbin_rules(db, crs)
+
+    role_user = get_role_by_id(db, 3)  # 普通用户
+    cos = get_casbin_objects(db)  # 所有资源
+    cas1 = ['read', 'show'] # 只读权限
+    crs1 = []
+    for co in cos:
+        for ca in cas1:
+            crs1.append(CasbinRule(ptype='p', v0=role_user.role_key, v1=co.object_key, v2=ca))
+    # 为普通用户组增加所有policy
+    create_casbin_rules(db, crs1)
+
+
+def create_temp_users(db: Session):
+    """
+    添加测试用户，并添加普通用户组权限
+    :param db:
+    :return:
+    """
+    # 添加一些用户
+    hashed_password = get_password_hash('123456')
+    role_user = get_role_by_id(db, 3)  # 普通用户组
+    if get_users_count(db) <= 1:
+        for i in range(58):
+            sex = str(random.randint(0, 1))
+            is_active = False
+            if random.randint(0, 1): is_active = True
+            k = str(i)
+            u = User(username='mini' + k, hashed_password=hashed_password, email='admin' + k + '@example.com',
+                     sex=sex, is_active=is_active, remark='临时测试用户')
+            user = add_user(db, u)
+            create_casbin_rule_g(db, CasbinRule(ptype='g', v0=user.username, v1=role_user.role_key))
+
+
+def create_user(db: Session, username: str, password: str, sex: str, email: str):
+    """
+    创建一个新用户
+    :param db:
+    :param username:
+    :param password:
+    :param sex:
+    :param email:
+    :return:
+    """
+    # 用户名成不能于用户组的object_key重复。
+    role = get_role_by_role_key(db, username)
+    role_user = get_role_by_id(db, 3)  # 普通用户组
+    if role:
+        return False
+    else:
+        hashed_password = get_password_hash(password)
+        user = User()
+        user.username = username
+        user.hashed_password = hashed_password
+        user.email = email
+        user.sex = sex
+        user = add_user(db, user)
+        create_casbin_rule_g(db, CasbinRule(ptype='g', v0=user.username, v1=role_user.role_key)) # 添加普通用户权限
+        return True
 
 
 def add_user(db: Session, user: User):
@@ -136,7 +197,7 @@ def change_user_password(db: Session, old_password: str, new_password: str, user
 
 
 def get_users(db: Session, offset: int, limit: int, keyword: str):
-    return db.query(User).filter(User.username.like("%" + keyword + "%")).offset(offset).limit(limit).all()
+    return db.query(User).order_by(-User.id).filter(User.username.like("%" + keyword + "%")).offset(offset).limit(limit).all()
 
 
 def get_users_count_by_keyword(db: Session, keyword: str):
@@ -155,7 +216,7 @@ def get_users_count(db: Session):
 def delete_user_by_id(db: Session, user_id: int):
     try:
         user = db.query(User).filter_by(id=user_id).first()
-        crs = get_casbin_rules_by_username(db,user.username)
+        crs = get_casbin_rules_by_username(db, user.username)
         for cr in crs:
             db.delete(cr)
         db.delete(user)

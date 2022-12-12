@@ -112,6 +112,12 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 ######################################
 # User相关的api接口
 ######################################
+
+@router.post('/user/create_user')
+async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    return crud.create_user(db, user.username, user.password, user.sex, user.email)
+
+
 @router.get("/user/me", response_model=schemas.User)
 async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """
@@ -566,10 +572,7 @@ async def isAuthenticated(rule: schemas.Casbin_rule, token: str = Depends(oauth2
     :return:
     """
     # print("路由权限验证")
-    if verify_enforce(token, rule):
-        return True
-    else:
-        return False
+    return verify_enforce(token, rule)
 
 
 @router.post("/casbin_rule_test")

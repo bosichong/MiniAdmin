@@ -16,10 +16,10 @@ from passlib.context import CryptContext
 from pydantic import BaseSettings
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
-from schemas import TokenData
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
-from database import BASE_DIR, get_casbin_e
+from database import BASE_DIR, get_casbin_e, get_db
+from models import User
 
 LOG_LEVEL = "DEBUG"
 logger.remove()  # 删去import logger之后自动产生的handler，不删除的话会出现重复输出的现象
@@ -71,10 +71,36 @@ def verify_enforce(token: str, rule):
     :param rule: object ，action
     :return:
     """
-    e = get_casbin_e() # 每次都要调用，获取最新的权限规则。
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="您的帐户已锁定！",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    e = get_casbin_e()  # 每次都要调用，获取最新的权限规则。
     sub = get_username_by_token(token)  # token中获取用户名
     # print(sub,rule.obj,rule.act)
-    return e.enforce(sub, rule.obj, rule.act)
+    if not verify_isActive(sub):
+        return e.enforce(sub, rule.obj, rule.act)
+    else:
+        raise credentials_exception
+
+
+def verify_isActive(username: str):
+    """
+    判断用户是否锁定
+    :param username:
+    :return:
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="当前账户不存在或已被删除！",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    user = next(get_db()).query(User).filter_by(username=username).first()
+    if user:
+        return user.is_active
+    else:
+        raise credentials_exception
 
 
 def verify_e(e, sub, obj, act):

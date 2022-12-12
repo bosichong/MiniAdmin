@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:28:55
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-08 08:11:33
+ * @LastEditTime: 2022-12-12 22:51:48
  * @FilePath: /MiniAdmin/front/src/main.js
  */
 import { createApp } from 'vue'

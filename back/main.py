@@ -60,7 +60,7 @@ DATABASE_KEY = "miniadmin"
 # 在数据库中生成表结构
 Base.metadata.create_all(bind=engine)
 
-crud.create_test_data(next(get_db()))
+crud.create_data(next(get_db()))
 
 
 @app.get("/")

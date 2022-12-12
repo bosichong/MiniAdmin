@@ -2,14 +2,14 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 21:01:41
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-11 21:24:16
+ * @LastEditTime: 2022-12-12 22:30:09
  * @FilePath: /MiniAdmin/front/src/components/admin/admin.vue
 -->
 <template>
     <a-layout>
         <a-layout-sider breakpoint="lg" collapsed-width="0" @collapse="onCollapse" @breakpoint="onBreakpoint"
             :style="{background:'none'}">
-            <div class="logo" />
+            <div class="logo" ><a-typography-title :level="4">Mini Aadmin</a-typography-title></div>
             <a-menu v-model:selectedKeys="selectedKeys" v-model:openKeys="openKeys" mode="inline">
                 <a-menu-item key="1">
                     <router-link to="/admin/main">
@@ -117,9 +117,13 @@ const openKeys = ref(['sub1', 'sub2'])
     height: 32px;
     background: rgba(115, 184, 173, 0.1);
     margin: 16px;
+    text-align: center;
 }
 
 .ant-layout {
     background: none;
+}
+.ant-layout-sider{
+    background:none;
 }
 </style>

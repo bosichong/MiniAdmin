@@ -1,0 +1,11 @@
+casbin==1.17.4
+casbin_sqlalchemy_adapter==0.5.0
+fastapi==0.88.0
+jose==1.0.0
+loguru==0.6.0
+passlib==1.7.4
+pydantic==1.10.2
+pytest==7.1.2
+python_jose==3.3.0
+SQLAlchemy==1.4.39
+uvicorn==0.20.0

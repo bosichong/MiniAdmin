@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-12-01 09:10:43
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-12 10:34:30
+ * @LastEditTime: 2022-12-13 01:22:23
  * @FilePath: /MiniAdmin/front/src/components/Login.vue
 -->
 <template>
@@ -65,6 +65,11 @@ const onFinish = (values) => {
     ).then(function (response) {
         let token = response.data.access_token
         sessionStorage.setItem('token', token)
+        // 刷新一下axios.defaults.headers的token
+        axios.defaults.headers = {
+            "accept": "application / json",
+            "Authorization": "Bearer " + sessionStorage.getItem('token')
+        }
         // console.log(token);
         // console.log(sessionStorage.getItem('username'))
         if (sessionStorage.getItem('username') === null) {
@@ -84,7 +89,7 @@ const onFinish = (values) => {
         }
 
     }).catch(function (error) {
-        console.log(error.response.data.detail)
+        // console.log(error.response.data.detail)
         let modal = Modal.error()
         modal.update({
             title: '错误!',

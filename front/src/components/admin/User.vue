@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:06:33
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-12 09:43:16
+ * @LastEditTime: 2022-12-13 01:19:43
  * @FilePath: /MiniAdmin/front/src/components/admin/User.vue
 -->
 <template>
@@ -403,7 +403,7 @@ const active_change = (id) => {
         content: error.response.data.detail,
         onOk: () => {
           visible.value = false
-          onPageChange(c.value,p.value)
+          onPageChange(c.value, p.value)
         }
       })
     }
@@ -449,7 +449,7 @@ const showDeleteConfirm = (id) => {
           let model = Modal.error()
           model.update({
             title: '提示!',
-            content: '删除失败!'
+            content: '删除失败!' + error.response.data.detail
           })
         }
       })
