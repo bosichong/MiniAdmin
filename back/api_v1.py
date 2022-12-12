@@ -18,13 +18,29 @@ from jose import JWTError, jwt
 import crud, schemas, models
 from database import get_db, get_casbin_e
 from schemas import Token, TokenData
-from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, get_username_by_token, get_password_hash, verify_casbin_e, logger
+from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, get_username_by_token, get_password_hash, verify_enforce, logger
 
 router = APIRouter(
     prefix="/v1",
     tags=["v1"],
     responses={404: {"description": "Not found"}},  # 请求异常返回数据
 )
+
+no_permission = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="您没有该权限！",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
+
+def return_rule(obj, act):
+    """
+    返回一个验证权限的规则，包括obj、act。
+    :param obj:
+    :param act:
+    :return:
+    """
+    return schemas.Casbin_rule(obj=obj, act=act)
 
 
 ######################################
@@ -115,7 +131,10 @@ async def get_user_by_id(token: str = Depends(oauth2_scheme), db: Session = Depe
     :param user_id:
     :return: schemas.User
     """
-    return crud.get_user_by_id(db, user_id)
+    if verify_enforce(token, return_rule('User', 'read')):
+        return crud.get_user_by_id(db, user_id)
+    else:
+        raise no_permission
 
 
 @router.get('/user/get_users', response_model=schemas.Users)
@@ -126,57 +145,107 @@ async def get_users(token: str = Depends(oauth2_scheme), db: Session = Depends(g
 
 @router.get('/user/active_change')
 async def user_active_change(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), user_id: int = 0):
-    return crud.active_change(db, user_id)
+    """
+    修改用户锁定
+    :param token:
+    :param db:
+    :param user_id:
+    :return:
+    """
+    if verify_enforce(token, return_rule('User', 'update')):
+        return crud.active_change(db, user_id)
+    else:
+        raise no_permission
 
 
 @router.get('/user/delete_user')
 async def delete_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), user_id: int = 0):
-    return crud.delete_user_by_id(db, user_id)
+    """
+    删除用户
+    :param token:
+    :param db:
+    :param user_id:
+    :return:
+    """
+    if verify_enforce(token, return_rule('User', 'delete')):
+        return crud.delete_user_by_id(db, user_id)
+    else:
+        raise no_permission
 
 
 @router.post('/user/update_user')
 async def update_user(user: schemas.UserUpdate, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    u = crud.get_user_by_id(db, user.user_id)
-    u.username = user.username
-    u.email = user.email
-    u.sex = user.sex
-    u.remark = user.remark
-    u.avatar = user.avatar
-    if user.password != '':
-        hashed_password = get_password_hash(user.password)
-        u.hashed_password = hashed_password
-    try:
-        db.commit()
-        return True
-    except:
-        return False
+    """
+    修改用户资料
+    :param user:
+    :param token:
+    :param db:
+    :return:
+    """
+    if verify_enforce(token, return_rule('User', 'update')):
+        u = crud.get_user_by_id(db, user.user_id)
+        u.username = user.username
+        u.email = user.email
+        u.sex = user.sex
+        u.remark = user.remark
+        u.avatar = user.avatar
+        if user.password != '':
+            hashed_password = get_password_hash(user.password)
+            u.hashed_password = hashed_password
+        try:
+            db.commit()
+            return True
+        except:
+            return False
+    else:
+        raise no_permission
 
 
 @router.post('/user/change_user_role')
 async def change_user_role(data: schemas.ChangeUserRole, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    # 将用户组名称改成role_key
-    role_keys = []
-    for name in data.names:
-        role = crud.get_role_by_name(db, name)
-        role_keys.append(role.role_key)
-    return crud.change_user_role(db, data.user_id, role_keys)
+    """
+    修改用户拥有的用户组
+    :param data:
+    :param token:
+    :param db:
+    :return:
+    """
+    if verify_enforce(token, return_rule('User', 'update')):
+        # 将用户组名称改成role_key
+        role_keys = []
+        for name in data.names:
+            role = crud.get_role_by_name(db, name)
+            role_keys.append(role.role_key)
+        return crud.change_user_role(db, data.user_id, role_keys)
+    else:
+        raise no_permission
 
 
 @router.get('/user/get_user_role')
 async def get_user_role(user_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    user = crud.get_user_by_id(db, user_id)
-    roles = crud.get_roles(db)
-    options = []  # 所有的权限组名称
-    for role in roles:
-        options.append(role.name)
+    """
+    获取用户所拥有的用户组
+    :param user_id:
+    :param token:
+    :param db:
+    :return:
+    """
 
-    checkeds = []  # 当前用户所拥有的用户组
-    crs = crud.get_casbin_rules_by_username(db, user.username)
-    for cr in crs:
-        role = crud.get_role_by_role_key(db, cr.v1)
-        checkeds.append(role.name)
+    if verify_enforce(token, return_rule('User', 'read')):
+        user = crud.get_user_by_id(db, user_id)
+        roles = crud.get_roles(db)
+        options = []  # 所有的权限组名称
+        for role in roles:
+            options.append(role.name)
 
-    return {'options': options, 'checkeds': checkeds}
+        checkeds = []  # 当前用户所拥有的用户组
+        crs = crud.get_casbin_rules_by_username(db, user.username)
+        for cr in crs:
+            role = crud.get_role_by_role_key(db, cr.v1)
+            checkeds.append(role.name)
+        return {'options': options, 'checkeds': checkeds}
+    else:
+        raise no_permission
 
 
 ######################################
@@ -426,7 +495,7 @@ async def get_menu_permissions(token: str = Depends(oauth2_scheme), db: Session 
     ]
     menu = {}
     for r in rules:
-        if verify_casbin_e(token, schemas.Casbin_rule(obj=r[0], act=r[1])):
+        if verify_enforce(token, schemas.Casbin_rule(obj=r[0], act=r[1])):
             menu[r[0]] = True
         else:
             menu[r[0]] = False
@@ -443,7 +512,7 @@ async def isAuthenticated(rule: schemas.Casbin_rule, token: str = Depends(oauth2
     :return:
     """
     # print("路由权限验证")
-    if verify_casbin_e(token, rule):
+    if verify_enforce(token, rule):
         return True
     else:
         return False
@@ -457,7 +526,7 @@ async def casbin_test(token: str = Depends(oauth2_scheme)):
     :return:
     """
     rule = schemas.Casbin_rule(obj='User', act='read')
-    if verify_casbin_e(token, rule):
+    if verify_enforce(token, rule):
         return True
     else:
         return False

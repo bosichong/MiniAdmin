@@ -64,7 +64,7 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def verify_casbin_e(token: str, rule):
+def verify_enforce(token: str, rule):
     """
     casbin权限验证
     :param token:token

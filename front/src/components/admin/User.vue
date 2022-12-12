@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:06:33
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-09 22:10:03
+ * @LastEditTime: 2022-12-12 09:43:16
  * @FilePath: /MiniAdmin/front/src/components/admin/User.vue
 -->
 <template>
@@ -87,22 +87,22 @@
 
   <a-drawer title="修改用户组" width="550" v-model:visible="changeGroupvisible">
     <template #extra>
-        <a-button @click="changeGroupClose">取消</a-button>
-        <a-button type="primary" @click="changeusergroup">提交</a-button>
+      <a-button @click="changeGroupClose">取消</a-button>
+      <a-button type="primary" @click="changeusergroup">提交</a-button>
     </template>
 
 
 
-        <a-checkbox-group v-model:value="checkeds.value" :options="options.value" />
+    <a-checkbox-group v-model:value="checkeds.value" :options="options.value" />
 
-        
+
   </a-drawer>
 
 </template>
 <script setup>
 import { ref, reactive, toRaw, createVNode } from 'vue';
 import axios from 'axios'
-import {UsergroupAddOutlined, ExclamationCircleOutlined, LockOutlined, UserOutlined, EditFilled, DeleteFilled, } from '@ant-design/icons-vue';
+import { UsergroupAddOutlined, ExclamationCircleOutlined, LockOutlined, UserOutlined, EditFilled, DeleteFilled, } from '@ant-design/icons-vue';
 
 import { Modal } from 'ant-design-vue';
 
@@ -138,17 +138,28 @@ const changeGroupClose = () => {
 }
 // 打开修改用户组的抽屉
 const changeGroup = (user_id) => {
-  axios.get('/v1/user/get_user_role',{
+  axios.get('/v1/user/get_user_role', {
     params: {
-      user_id:user_id
+      user_id: user_id
     }
   }).then((response) => {
     options.value = response.data.options
     checkeds.value = response.data.checkeds
     cuser_id.value = user_id
     changeGroupvisible.value = true
+  }).catch(function (error) {
+    if (error) {
+      let model = Modal.error()
+      model.update({
+        title: '错误!',
+        content: error.response.data.detail,
+        onOk: () => {
+          visible.value = false
+        }
+      })
+    }
   })
-  
+
 
 }
 
@@ -177,6 +188,18 @@ const changeusergroup = () => {
         content: "修改失败!请检查权限参数",
       })
     }
+  }).catch(function (error) {
+    if (error) {
+      let model = Modal.error()
+      model.update({
+        title: '错误!',
+        content: error.response.data.detail,
+        onOk: () => {
+          visible.value = false
+        }
+      })
+
+    }
   })
 }
 
@@ -199,9 +222,22 @@ const showDrawer = (user_id) => {
     formUserEdit.email = response.data.email
     formUserEdit.sex = response.data.sex
     formUserEdit.remark = response.data.remark
-  }))
+    visible.value = true;
+  })).catch(function (error) {
+    if (error) {
+      let model = Modal.error()
+      model.update({
+        title: '错误!',
+        content: error.response.data.detail,
+        onOk: () => {
+          visible.value = false
+        }
+      })
 
-  visible.value = true;
+    }
+  })
+
+
 }
 
 
@@ -236,6 +272,18 @@ const onSubmit = () => {
       model.update({
         title: '提示!',
         content: '修改成功!',
+        onOk: () => {
+          visible.value = false
+        }
+      })
+
+    }
+  }).catch(function (error) {
+    if (error) {
+      let model = Modal.error()
+      model.update({
+        title: '错误!',
+        content: error.response.data.detail,
         onOk: () => {
           visible.value = false
         }
@@ -347,6 +395,18 @@ const active_change = (id) => {
       // onPageChange(c.value,p.value)
     }
 
+  }).catch(function (error) {
+    if (error) {
+      let model = Modal.error()
+      model.update({
+        title: '错误!',
+        content: error.response.data.detail,
+        onOk: () => {
+          visible.value = false
+          onPageChange(c.value,p.value)
+        }
+      })
+    }
   })
 
 }
@@ -376,12 +436,22 @@ const showDeleteConfirm = (id) => {
           })
         }
       }).catch(function (error) {
-        let model = Modal.error()
-        model.update({
-          title: '提示!',
-          content: '删除失败!'
-        })
-
+        if (error.response.data.detail === '您没有该权限！') {
+          let model = Modal.error()
+          model.update({
+            title: '错误!',
+            content: error.response.data.detail,
+            onOk: () => {
+              visible.value = false
+            }
+          })
+        } else {
+          let model = Modal.error()
+          model.update({
+            title: '提示!',
+            content: '删除失败!'
+          })
+        }
       })
     },
     onCancel() {
