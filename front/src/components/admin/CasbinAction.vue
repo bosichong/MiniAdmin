@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:11:04
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-09 23:50:15
+ * @LastEditTime: 2022-12-12 16:15:36
  * @FilePath: /MiniAdmin/front/src/components/admin/CasbinAction.vue
 -->
 <template lang="">
@@ -65,7 +65,7 @@
   </a-drawer>
 </template>
 <script setup>
-import { PlusOutlined, ExclamationCircleOutlined,EditFilled,DeleteFilled, } from '@ant-design/icons-vue';
+import { PlusOutlined, ExclamationCircleOutlined, EditFilled, DeleteFilled, } from '@ant-design/icons-vue';
 import { reactive, ref, computed, createVNode } from 'vue';
 import axios from 'axios'
 import { Modal } from 'ant-design-vue';
@@ -129,42 +129,48 @@ const editca = () => {
                 content: "修改失败!",
             })
         }
+    }).catch(function (error) {
+        let modal = Modal.error()
+        modal.update({
+            title: '错误!',
+            content: "修改失败!" + error.response.data.detail,
+        })
     })
 }
 
-const deleteca = (ca_id) =>{
+const deleteca = (ca_id) => {
     Modal.confirm({
-    title: '确定要删除吗?',
-    icon: createVNode(ExclamationCircleOutlined),
-    content: '确定后会删除此资源及其相关的权限!',
-    okText: '确定',
-    okType: 'danger',
-    cancelText: '取消',
-    onOk() {
-      axios.get('v1/ca/delete_ca', {
-        params: { ca_id : ca_id},
-      }).then(function (response) {
-        if (response.data) {
-          openPage()
-          let model = Modal.info()
-          model.update({
-            title: '提示!',
-            content: '删除成功!'
-          })
-        }
-      }).catch(function (error) {
-        let model = Modal.error()
-        model.update({
-          title: '提示!',
-          content: '删除失败!'
-        })
+        title: '确定要删除吗?',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: '确定后会删除此资源及其相关的权限!',
+        okText: '确定',
+        okType: 'danger',
+        cancelText: '取消',
+        onOk() {
+            axios.get('v1/ca/delete_ca', {
+                params: { ca_id: ca_id },
+            }).then(function (response) {
+                if (response.data) {
+                    openPage()
+                    let model = Modal.info()
+                    model.update({
+                        title: '提示!',
+                        content: '删除成功!'
+                    })
+                }
+            }).catch(function (error) {
+                let model = Modal.error()
+                model.update({
+                    title: '提示!',
+                    content: "修改失败!" + error.response.data.detail,
+                })
 
-      })
-    },
-    onCancel() {
-      console.log('Cancel');
-    },
-  });
+            })
+        },
+        onCancel() {
+            console.log('Cancel');
+        },
+    });
 }
 
 
@@ -228,8 +234,21 @@ const oncaFinish = () => {
         createcaform.name = ''
         createcaform.action_key = ''
         createcaform.description = ''
-    }).then(function (error) {
+    }).catch(function (error) {
+        if (error) {
+            let model = Modal.error()
+            model.update({
+                title: '错误!',
+                content: error.response.data.detail,
+                onOk: () => {
+                    visible.value = false
+                    createcaform.name = ''
+                    createcaform.action_key = ''
+                    createcaform.description = ''
+                }
+            })
 
+        }
     })
 
 };

@@ -91,4 +91,3 @@ class CasbinRule(Base):
     v3 = Column(String(255))
     v4 = Column(String(255))
     v5 = Column(String(255))
-

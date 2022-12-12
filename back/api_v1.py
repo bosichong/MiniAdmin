@@ -492,9 +492,8 @@ async def delete_casbin_object_by_id(co_id: int, token: str = Depends(oauth2_sch
         raise no_permission
 
 
-
 ######################################
-# CasbinObject相关的api接口
+# CasbinAction相关的api接口
 ######################################
 
 @router.get('/ca/get_cas')
@@ -504,12 +503,15 @@ async def get_cas(token: str = Depends(oauth2_scheme), db: Session = Depends(get
 
 @router.post('/ca/create_ca')
 async def create_ca(ca: schemas.createCasbinAction, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    new_ca = models.CasbinAction()
-    new_ca.name = ca.name
-    new_ca.action_key = ca.action_key
-    new_ca.description = ca.description
-    new_ca.user_id = ca.user_id
-    return crud.create_casbin_action(db, new_ca)
+    if verify_enforce(token, return_rule('CasbinAction', 'create')):
+        new_ca = models.CasbinAction()
+        new_ca.name = ca.name
+        new_ca.action_key = ca.action_key
+        new_ca.description = ca.description
+        new_ca.user_id = ca.user_id
+        return crud.create_casbin_action(db, new_ca)
+    else:
+        raise no_permission
 
 
 @router.get('/ca/get_ca')
@@ -519,12 +521,18 @@ async def get_ca(ca_id: int, token: str = Depends(oauth2_scheme), db: Session = 
 
 @router.post('/ca/update_ca')
 async def update_ca(ca: schemas.EditCasbinAction, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    return crud.update_casbin_action_by_id(db, ca.old_ca_id, ca.name, ca.action_key, ca.description)
+    if verify_enforce(token, return_rule('CasbinAction', 'update')):
+        return crud.update_casbin_action_by_id(db, ca.old_ca_id, ca.name, ca.action_key, ca.description)
+    else:
+        raise no_permission
 
 
 @router.get('/ca/delete_ca')
 async def delete_ca(ca_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    return crud.delete_casbin_action_by_id(db, ca_id)
+    if verify_enforce(token, return_rule('CasbinAction', 'delete')):
+        return crud.delete_casbin_action_by_id(db, ca_id)
+    else:
+        raise no_permission
 
 
 ######################################
