@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:08:35
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-09 23:40:55
+ * @LastEditTime: 2022-12-12 16:05:01
  * @FilePath: /MiniAdmin/front/src/components/admin/CasbinObject.vue
 -->
 <template lang="">
@@ -128,7 +128,13 @@ const editRole = () => {
                 content: "修改失败!",
             })
         }
+    }).catch(function (error) {
+    let modal = Modal.error()
+    modal.update({
+      title: '错误!',
+      content: "修改失败!" + error.response.data.detail,
     })
+  })
 }
 
 const deleteRole = (co_id) => {
@@ -155,7 +161,7 @@ const deleteRole = (co_id) => {
                 let model = Modal.error()
                 model.update({
                     title: '提示!',
-                    content: '删除失败!'
+                    content: "修改失败!" + error.response.data.detail,
                 })
 
             })
@@ -232,8 +238,21 @@ const onCoFinish = () => {
         createCoform.name = ''
         createCoform.object_key = ''
         createCoform.description = ''
-    }).then(function (error) {
+    }).catch(function (error) {
+        if (error) {
+            let model = Modal.error()
+            model.update({
+                title: '错误!',
+                content: error.response.data.detail,
+                onOk: () => {
+                    visible.value = false
+                    createCoform.name = ''
+                    createCoform.object_key = ''
+                    createCoform.description = ''
+                }
+            })
 
+        }
     })
 
 };

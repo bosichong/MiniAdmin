@@ -453,12 +453,22 @@ async def get_cos(token: str = Depends(oauth2_scheme), db: Session = Depends(get
 
 @router.post('/co/create_co')
 async def create_casbin_object(co: schemas.createCasbinObject, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    new_co = models.CasbinObject()
-    new_co.name = co.name
-    new_co.object_key = co.object_key
-    new_co.description = co.description
-    new_co.user_id = co.user_id
-    return crud.create_casbin_object(db, new_co)
+    """
+    创建资源
+    :param co:
+    :param token:
+    :param db:
+    :return:
+    """
+    if verify_enforce(token, return_rule('CasbinObject', 'create')):
+        new_co = models.CasbinObject()
+        new_co.name = co.name
+        new_co.object_key = co.object_key
+        new_co.description = co.description
+        new_co.user_id = co.user_id
+        return crud.create_casbin_object(db, new_co)
+    else:
+        raise no_permission
 
 
 @router.get('/co/get_co')
@@ -468,12 +478,19 @@ async def get_casbin_object(co_id: int, token: str = Depends(oauth2_scheme), db:
 
 @router.post('/co/update_co')
 async def update_casbin_object_by_id(co: schemas.EditCasbinObject, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    return crud.update_casbin_object(db, co.old_co_id, co.name, co.object_key, co.description)
+    if verify_enforce(token, return_rule('CasbinObject', 'update')):
+        return crud.update_casbin_object(db, co.old_co_id, co.name, co.object_key, co.description)
+    else:
+        raise no_permission
 
 
 @router.get('/co/delete_co')
 async def delete_casbin_object_by_id(co_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    return crud.delete_casbin_object_by_id(db, co_id)
+    if verify_enforce(token, return_rule('CasbinObject', 'read')):
+        return crud.delete_casbin_object_by_id(db, co_id)
+    else:
+        raise no_permission
+
 
 
 ######################################
