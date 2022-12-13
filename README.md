@@ -1,8 +1,16 @@
+<!--
+ * @Author: J.sky bosichong@qq.com
+ * @Date: 2022-11-29 19:28:55
+ * @LastEditors: J.sky bosichong@qq.com
+ * @LastEditTime: 2022-12-13 11:35:33
+ * @FilePath: /MiniAdmin/README.md
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
 ## Mini Admin
 
 Mini Admin,一个简洁轻快的后台管理框架.支持拥有多用户组的RBAC管理后台 🚀
 
-应用场景：2-5人的管理团腿，需要管理的资源数目10个或是更少，如果想有一个简单轻快直接的后台管理，下载下来就可以使用，
+应用场景：2-5人的管理团队，需要管理的资源数目10个或是更少，如果想有一个简单轻快直接的后台管理，下载下来就可以使用，
 不要配置各种运行环境，不要搭建各种服务器端的主机配置，就是想拿来就用！ 那么你就试试咱的MiniAdmin。
 
 
