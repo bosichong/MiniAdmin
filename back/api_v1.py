@@ -115,6 +115,15 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 @router.post('/user/create_user')
 async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="用户名称重复！",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    # 注册用户名称不能与用户组的role_key重复。
+    role = crud.get_role_by_role_key(db, user.username)
+    if role:
+        raise credentials_exception
     return crud.create_user(db, user.username, user.password, user.sex, user.email)
 
 
@@ -189,7 +198,16 @@ async def update_user(user: schemas.UserUpdate, token: str = Depends(oauth2_sche
     :return:
     """
     if verify_enforce(token, return_rule('User', 'update')):
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="用户名称重复！",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
         u = crud.get_user_by_id(db, user.user_id)
+        # 修改用户名称不能与用户组的role_key重复。
+        role = crud.get_role_by_role_key(db, user.username)
+        if role:
+            raise credentials_exception
         u.username = user.username
         u.email = user.email
         u.sex = user.sex
@@ -205,6 +223,41 @@ async def update_user(user: schemas.UserUpdate, token: str = Depends(oauth2_sche
             return False
     else:
         raise no_permission
+
+
+@router.post('/user/update_me')
+async def update_me(user: schemas.UserUpdate, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """
+    修改用户资料
+    :param user:
+    :param token:
+    :param db:
+    :return:
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    username = get_username_by_token(token)
+    me = crud.get_user_by_username(db,username)
+    if user.user_id == me.id:
+        u = crud.get_user_by_id(db, user.user_id)
+        u.username = user.username
+        u.email = user.email
+        u.sex = user.sex
+        u.remark = user.remark
+        u.avatar = user.avatar
+        if user.password != '':
+            hashed_password = get_password_hash(user.password)
+            u.hashed_password = hashed_password
+        try:
+            db.commit()
+            return True
+        except:
+            raise credentials_exception
+    else:
+        raise credentials_exception
 
 
 @router.post('/user/change_user_role')

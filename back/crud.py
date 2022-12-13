@@ -89,7 +89,7 @@ def set_user_role(db: Session):
 
     role_user = get_role_by_id(db, 3)  # 普通用户
     cos = get_casbin_objects(db)  # 所有资源
-    cas1 = ['read', 'show'] # 只读权限
+    cas1 = ['read', 'show']  # 只读权限
     crs1 = []
     for co in cos:
         for ca in cas1:
@@ -129,21 +129,16 @@ def create_user(db: Session, username: str, password: str, sex: str, email: str)
     :param email:
     :return:
     """
-    # 用户名成不能于用户组的object_key重复。
-    role = get_role_by_role_key(db, username)
     role_user = get_role_by_id(db, 3)  # 普通用户组
-    if role:
-        return False
-    else:
-        hashed_password = get_password_hash(password)
-        user = User()
-        user.username = username
-        user.hashed_password = hashed_password
-        user.email = email
-        user.sex = sex
-        user = add_user(db, user)
-        create_casbin_rule_g(db, CasbinRule(ptype='g', v0=user.username, v1=role_user.role_key)) # 添加普通用户权限
-        return True
+    hashed_password = get_password_hash(password)
+    user = User()
+    user.username = username
+    user.hashed_password = hashed_password
+    user.email = email
+    user.sex = sex
+    user = add_user(db, user)
+    create_casbin_rule_g(db, CasbinRule(ptype='g', v0=user.username, v1=role_user.role_key))  # 添加普通用户权限
+    return True
 
 
 def add_user(db: Session, user: User):

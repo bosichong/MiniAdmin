@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-29 19:42:59
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-13 01:08:48
+ * @LastEditTime: 2022-12-13 08:39:27
  * @FilePath: /MiniAdmin/front/src/router/index.js
  */
 import { createRouter, createWebHistory } from 'vue-router'
@@ -167,7 +167,7 @@ router.beforeEach((to, from, next) => {
                         "Authorization": "Bearer " + sessionStorage.getItem('token')
                     },
                 }).then(function (response) {
-                    console.log(response.data);
+                    // console.log(response.data);
                     if (response.data === '锁定'){
                         sessionStorage.clear()
                         next({ name: 'Login' })

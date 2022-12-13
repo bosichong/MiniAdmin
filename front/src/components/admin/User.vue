@@ -2,7 +2,7 @@
  * @Author: J.sky bosichong@qq.com
  * @Date: 2022-11-30 10:06:33
  * @LastEditors: J.sky bosichong@qq.com
- * @LastEditTime: 2022-12-13 01:19:43
+ * @LastEditTime: 2022-12-13 08:29:24
  * @FilePath: /MiniAdmin/front/src/components/admin/User.vue
 -->
 <template>
@@ -284,9 +284,6 @@ const onSubmit = () => {
       model.update({
         title: '错误!',
         content: error.response.data.detail,
-        onOk: () => {
-          visible.value = false
-        }
       })
 
     }
