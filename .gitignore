@@ -9,7 +9,6 @@ __pycache__/
 .Python
 env/
 build/
-dist/
 *.log
 *.db
 
@@ -54,8 +53,6 @@ lerna-debug.log*
 
 node_modules
 .DS_Store
-dist
-dist-ssr
 coverage
 *.local
 
