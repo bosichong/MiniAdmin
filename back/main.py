@@ -23,7 +23,7 @@ from api_v1 import router
 import crud
 
 from fastapi.responses import HTMLResponse  # 响应html
-from fastapi.staticfiles import StaticFiles # 设置静态目录
+from fastapi.staticfiles import StaticFiles  # 设置静态目录
 
 __version__ = "0.1.0"
 description = '''Mini Admin,一个简洁轻快的后台管理框架.支持拥有多用户组的RBAC管理后台 🚀'''
@@ -61,8 +61,6 @@ app.include_router(router)
 app.mount("/dist", StaticFiles(directory=os.path.join(BASE_DIR, 'dist')), name="dist")
 app.mount("/assets", StaticFiles(directory=os.path.join(BASE_DIR, 'dist/assets')), name="assets")
 
-
-
 # 删除表，当更新表的结构时可以使用，但是会删除所有数据。慎用！！！！
 # models.Base.metadata.drop_all(bind=engine)
 # 在数据库中生成表结构
@@ -75,7 +73,7 @@ crud.create_data(next(get_db()))
 def main():
     html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dist', 'index.html')
     html_content = ''
-    with open(html_path) as f:
+    with open(html_path, encoding="utf-8") as f:
         html_content = f.read()
     return HTMLResponse(content=html_content, status_code=200)
 

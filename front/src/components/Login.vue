@@ -123,7 +123,7 @@ const disabled = computed(() => {
     text-align: center;
     position: fixed;
     width: 350px;
-    height: 200px;
+    height: 600px;
     top: 0;
     bottom: 0;
     left: 0;
