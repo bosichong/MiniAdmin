@@ -18,7 +18,7 @@ from jose import JWTError, jwt
 import crud, schemas, models
 from database import get_db, get_casbin_e
 from schemas import Token, TokenData
-from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, get_username_by_token, get_password_hash, verify_enforce, logger
+from utils import verify_password, APP_TOKEN_CONFIG, oauth2_scheme, get_username_by_token, get_password_hash, verify_enforce, update_array
 
 router = APIRouter(
     prefix="/v1",
@@ -455,7 +455,9 @@ async def get_co_ca(role_id: int, token: str = Depends(oauth2_scheme), db: Sessi
             # print(temp_nams)
     checkeds.append(temp_nams)
     # print(checkeds)
-    return {'options': all_co_ca, 'checkeds': checkeds}
+    # print(all_co_ca)
+    # print(update_array(all_co_ca,checkeds))
+    return {'options': all_co_ca, 'checkeds': update_array(all_co_ca,checkeds)}
 
 
 @router.post('/role/change_role')
@@ -495,7 +497,7 @@ async def change_role(cr_data: schemas.ChangeRole, token: str = Depends(oauth2_s
                     if cr != cr_name:
                         # print(role.role_key, object_key, ca_name_key[cr])
                         change_crs.append(models.CasbinRule(ptype='p', v0=role.role_key, v1=object_key, v2=ca_name_key[cr]))
-
+        # print(change_crs)
         return crud.change_role_casbinrules(db, role.role_key, change_crs)
     else:
         raise no_permission
