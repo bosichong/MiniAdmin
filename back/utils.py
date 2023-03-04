@@ -125,3 +125,40 @@ def get_username_by_token(token):
         return username
     except JWTError:
         raise credentials_exception
+
+
+import copy
+
+
+def update_array(original_array, parameters):
+    '''
+    拼装前端权限管理展示数据
+    :param original_array:
+    :param parameters:
+    :return:
+    '''
+    result = copy.deepcopy(original_array)
+
+    for parameter in parameters:
+        for original in result:
+            if parameter[0] == original[0]:
+                result[result.index(original)] = parameter
+                break
+    for original in result:
+        if original not in parameters:
+            result[result.index(original)] = []
+
+    return result
+
+
+if __name__ == '__main__':
+    original_array = [['用户管理:', '增', '删', '改', '查', '显'],
+                      ['角色管理:', '增', '删', '改', '查', '显'],
+                      ['资源管理:', '增', '删', '改', '查', '显'],
+                      ['动作管理:', '增', '删', '改', '查', '显']]
+    parameters = [['用户管理:', '查', '显'], ['动作管理:', '查', '显']]
+
+    result = update_array(original_array, parameters)
+    print(result)
+    print(original_array)
+    print(parameters)
